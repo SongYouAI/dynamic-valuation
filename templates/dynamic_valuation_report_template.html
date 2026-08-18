@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动态估值报告 · {{COMPANY_NAME}}（{{MARKET}}）</title>
+<style>
+  :root{
+    /* ===== 设计系统 v2（对齐「七步财报分析」：Stripe + Apple + Tesla 科技金融风） ===== */
+    --navy:#0a1628;        /* 深空蓝（Hero/表头/标题） */
+    --navy-mid:#152238;    /* 次级深蓝 */
+    --gold:#c8943b;        /* 琥珀金（强调） */
+    --gold-light:#d4a853;  /* 浅金 */
+    --gold-bg:#fdf8ee;     /* 金色浅底（结论框） */
+    --ink:#1a1a2e;         /* 主文字 */
+    --ink-2:#3d4a63;       /* 次级文字 */
+    --blue:#1e5fb4;        /* 主蓝 */
+    --blue-deep:#0a1628;   /* 深蓝 = navy */
+    --blue-soft:#eaf1fb;   /* 浅蓝底 */
+    --gray:#5a6178;        /* 次级文字 */
+    --gray-2:#8a94a6;
+    --line:#d5dbe6;        /* 边框 */
+    --axis:#c7cedc;
+    --bg:#f5f6fa;          /* 页面冷灰底 */
+    --surface:#ffffff;     /* 卡片白 */
+    --off-white:#f5f6fa;   /* 微冷灰白（斑马纹） */
+    --green:#0d7c3b; --green-bg:#e8f5e9;
+    --amber:#9a6b1f; --amber-bg:#f6f1e7;
+    --red:#b71c1c; --red-bg:#fdeaea;
+    --chart-1:#635bff;     /* Stripe 紫蓝（图表强调） */
+    --shadow-md:0 4px 12px rgba(10,22,40,.08);
+    --shadow-lg:0 12px 32px rgba(10,22,40,.14);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"PingFang SC","Inter","SF Pro Display","Microsoft YaHei",sans-serif;
+       background:linear-gradient(135deg,#f5f6fa 0%,#ebeef5 100%);
+       color:var(--ink);line-height:1.75;font-size:15px;
+       -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+       font-variant-numeric:tabular-nums;}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 28px 60px;}
+  /* ===== Hero 报告头（深蓝渐变 + 金边 + 曲线纹理，对齐七步财报） ===== */
+  header{background:linear-gradient(135deg,#0a1628 0%,#152238 50%,#1a2744 100%);
+         color:#fff;border-radius:16px;padding:34px 36px 30px;position:relative;overflow:hidden;
+         border:1px solid rgba(255,255,255,.08);border-bottom:3px solid var(--gold);
+         box-shadow:0 12px 32px rgba(10,22,40,.22);}
+  header::before{content:"";position:absolute;inset:0;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='400' viewBox='0 0 1200 400'%3E%3Cpath d='M0 300 C200 250 400 350 600 280 S1000 200 1200 240' fill='none' stroke='%23635bff' stroke-width='2'/%3E%3Cpath d='M0 340 C200 300 400 380 600 320 S1000 250 1200 290' fill='none' stroke='%23c8943b' stroke-width='2'/%3E%3C/svg%3E");
+    background-size:cover;background-position:center right;opacity:.14;pointer-events:none;}
+  header::after{content:"";position:absolute;top:-50%;right:-8%;width:520px;height:520px;
+    background:radial-gradient(circle,rgba(99,91,255,.14) 0%,transparent 70%);border-radius:50%;
+    pointer-events:none;z-index:1;}
+  header>*{position:relative;z-index:2;}
+  header h1{margin:0 0 10px;font-size:26px;letter-spacing:1px;color:#f0e6d0;
+    text-shadow:0 2px 12px rgba(200,148,59,.25);}
+  header .sub{color:#b9c6de;font-size:13px;line-height:1.85;}
+  .tag{display:inline-block;background:rgba(200,148,59,.15);color:#e0c17d;
+       border:1.5px solid rgba(200,148,59,.4);border-radius:20px;padding:4px 16px;font-size:12px;
+       margin-bottom:14px;letter-spacing:1px;backdrop-filter:blur(4px);}
+  /* Hero KPI 行 */
+  .hero-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:26px;}
+  .hero-kpi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+            border-radius:10px;padding:10px 14px;backdrop-filter:blur(4px);}
+  .hero-kpi .hk-k{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#8a9bbf;}
+  .hero-kpi .hk-v{font-size:19px;font-weight:800;color:#fff;margin-top:4px;}
+  .hero-kpi .hk-v.gold{color:var(--gold-light);}
+  .hero-kpi .hk-s{font-size:11px;color:#b9c6de;margin-top:2px;}
+  section{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+          padding:24px 28px;margin-top:20px;box-shadow:0 2px 10px rgba(10,22,40,.06);}
+  h2{font-size:18px;margin:0 0 16px;padding:0 0 10px 12px;border-left:4px solid var(--gold);
+     border-bottom:1px solid var(--line);color:var(--ink);font-weight:800;}
+  h3{font-size:15px;color:var(--ink);margin:18px 0 8px;font-weight:700;}
+  .step{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin:14px 0;
+        overflow:hidden;box-shadow:0 1px 3px rgba(10,22,40,.05);}
+  .step h3{margin:0;padding:12px 18px;font-size:15.5px;color:#fff;letter-spacing:.5px;
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);}
+  .step p,.step .kv{padding:0 18px;}
+  .step p{margin:12px 0;}
+  .step .kv{margin:8px 0 14px;}
+  .step .note{margin:6px 18px 14px;}
+  .step table{margin:6px 18px 14px;width:calc(100% - 36px);}
+  .step b{color:var(--navy);}
+  .kv{display:grid;grid-template-columns:160px 1fr;gap:6px 14px;font-size:14px;margin:8px 0;}
+  .kv div:nth-child(odd){color:var(--gray);}
+  .kv div:nth-child(even){font-weight:600;color:var(--ink);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:12px 0;border-radius:8px;
+        overflow:hidden;box-shadow:0 1px 3px rgba(10,22,40,.05);}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;}
+  th{background:var(--navy);color:#fff;font-weight:700;font-size:12px;letter-spacing:.4px;}
+  tbody tr:nth-child(even){background:var(--off-white);}
+  tbody tr:hover{background:#e8f0fe;}
+  .verdict{font-weight:700;color:var(--blue-deep);}
+  .ok,.ph.ok{color:var(--green);} .warn,.ph.warn{color:var(--amber);} .bad,.ph.bad{color:var(--red);}
+  .pill{padding:3px 10px;border-radius:14px;font-size:13px;font-weight:700;
+        border:1px solid transparent;display:inline-block;}
+  /* 交叉验证判定 pill 化（✅/⚠️/❌ → 语义徽章） */
+  td span.ok,td span.warn,td span.bad{display:inline-block;padding:2px 11px;border-radius:12px;
+    font-size:12.5px;font-weight:600;white-space:nowrap;}
+  td span.ok{background:var(--green-bg);color:var(--green);border:1px solid #bfdbcb;}
+  td span.warn{background:var(--amber-bg);color:var(--amber);border:1px solid #e3d4b4;}
+  td span.bad{background:var(--red-bg);color:var(--red);border:1px solid #ebc9bf;}
+  /* 评级徽章语义色：低估=绿(机会) / 合理=蓝(中性) / 高估=红(风险) */
+  .pill.low{background:var(--green-bg);color:var(--green);border-color:#BFDBCB;}
+  .pill.neutral{background:var(--blue-soft);color:var(--blue-deep);border-color:#C6DCF0;}
+  .pill.high{background:var(--red-bg);color:var(--red);border-color:#EBC9BF;}
+  .note{background:var(--blue-soft);border:1px dashed var(--blue);border-radius:8px;padding:12px 14px;
+        font-size:13px;color:var(--ink-2);margin:12px 0;}
+  .market-block{border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:10px;padding:14px 16px;margin:10px 0;background:var(--blue-soft);}
+  .disclaim{font-size:12.5px;color:var(--gray);border-top:1px solid var(--line);margin-top:24px;padding-top:14px;}
+  code{background:#EEF2F8;padding:1px 6px;border-radius:4px;font-size:12.5px;color:var(--ink);}
+  .ph{color:var(--ink);font-weight:700;} /* 中间步骤结果：深蓝加粗 */
+  .legend{font-size:12.5px;color:var(--gray);margin:6px 0 2px;display:flex;gap:18px;flex-wrap:wrap;}
+  .legend b{font-weight:700;}
+  .viz{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;}
+  .viz-title{font-weight:700;color:var(--blue-deep);font-size:14px;margin-bottom:8px;}
+  .viz-cap{font-size:12px;color:var(--gray);margin-top:6px;}
+  details.coef{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 22px;margin-top:20px;box-shadow:0 2px 10px rgba(21,83,140,.06);}
+  details.coef summary{cursor:pointer;font-weight:700;color:var(--blue-deep);font-size:15px;padding:4px 0;}
+  details.coef ol{margin:8px 0;padding-left:20px;} details.coef li{margin:6px 0;font-size:13.5px;}
+  details.coef .mini{font-size:12.5px;color:var(--gray);line-height:1.9;}
+  footer{text-align:center;color:var(--gray);font-size:12px;margin-top:26px;}
+
+  /* ---------- SVG 语义色（走 CSS 变量，主题一改全图跟随） ---------- */
+  svg{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  svg .f-red{fill:var(--red);}        svg .k-red{stroke:var(--red);}
+  svg .f-green{fill:var(--green);}    svg .k-green{stroke:var(--green);}
+  svg .bg-green{fill:var(--green-bg);}
+  svg .f-blue{fill:var(--blue);}      svg .f-blue-d{fill:var(--blue-deep);}
+  svg .f-gray{fill:var(--gray);}      svg .f-gray2{fill:var(--gray-2);}
+  svg .k-line{stroke:var(--axis);}
+
+  /* ---------- 响应式三档断点 ---------- */
+  @media (max-width:1024px){
+    .wrap{max-width:100%;padding:26px 22px 52px;}
+    .kv{grid-template-columns:140px 1fr;}
+  }
+  @media (max-width:768px){
+    .wrap{padding:22px 16px 50px;}
+    header{padding:22px 22px;}
+    header h1{font-size:21px;}
+    .hero-kpis{grid-template-columns:repeat(2,1fr);}
+    .hero-kpi .hk-v{font-size:16px;}
+    section{padding:20px 18px;}
+    .toc-card{padding:16px 18px;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .conclusion-wrap{padding:20px 18px;}
+    .kv{grid-template-columns:120px 1fr;font-size:13.5px;}
+    table{font-size:12.8px;}
+    th,td{padding:7px 8px;}
+    .legend{gap:10px;font-size:12px;}
+  }
+  @media (max-width:640px){
+    .wrap{padding:18px 13px 48px;}
+    header{padding:22px 20px;}
+    header h1{font-size:20px;}
+    .hero-kpis{grid-template-columns:1fr 1fr;}
+    section{padding:18px 16px;}
+    .kpi-grid{grid-template-columns:1fr;}
+    .toc-grid{grid-template-columns:1fr;}
+    .kv{grid-template-columns:1fr;}      /* 标签/值各占一行 */
+    .kv div:nth-child(odd){font-weight:600;color:var(--gray);}
+    table{display:block;overflow-x:auto;white-space:nowrap;}
+    .viz{padding:12px 10px;}
+    .viz svg{height:auto;}
+  }
+  /* ---------- P0：打印 / 转 PDF（展开折叠、省墨、防断页） ---------- */
+  @media print{
+    body{background:#fff;}
+    header{background:var(--navy)!important;border-bottom:3px solid var(--gold)!important;
+           -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    header h1{color:#f0e6d0!important;} header .sub{color:#b9c6de!important;}
+    .hero-kpi{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.15)!important;}
+    .hero-kpi .hk-v{color:#fff!important;} .hero-kpi .hk-s,.hero-kpi .hk-k{color:#b9c6de!important;}
+    section,details.coef{box-shadow:none;border:1px solid #cdd3df;break-inside:avoid;}
+    .step,.viz{break-inside:avoid;}
+    .conclusion-wrap,.kpi-grid,.toc-card{break-inside:avoid;page-break-inside:avoid;}
+    /* 打印隐藏浮动导航/进度条/主题按钮；渐入卡片强制可见（防未滚动打印空白） */
+    .side-nav,.top-progress,.theme-toggle{display:none!important;}
+    .step.reveal-init,.viz.reveal-init{opacity:1!important;transform:none!important;}
+    /* 强制展开系数表，否则折叠内容打印丢失 */
+    details.coef{display:block!important;break-inside:auto;}
+    details.coef summary{list-style:none;}
+    details.coef summary ~ *{display:block!important;}
+  }
+
+  /* ---------- 粘性左侧导航（参考「七步财报分析 v7.0」侧栏，复用模板变量） ---------- */
+  html{scroll-behavior:smooth;}
+  .side-nav{ position:fixed; top:120px; left:24px; width:200px; z-index:40;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:14px; box-shadow:0 1px 3px rgba(21,83,140,.08); max-height:72vh; overflow:auto;
+    transition:opacity .3s ease, transform .3s ease, visibility .3s; }
+  .side-nav .sn-title{ font-size:12px; font-weight:800; color:var(--blue-deep); letter-spacing:1px;
+    margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--line); text-transform:uppercase; }
+  .side-nav a{ display:block; padding:7px 10px; font-size:13px; color:var(--gray);
+    border-radius:8px; border-left:3px solid transparent; transition:all .2s; text-decoration:none; line-height:1.45; }
+  .side-nav a.active{ background:var(--blue-deep); color:#fff; border-left-color:var(--amber); }
+  .side-nav a:hover{ color:var(--blue-deep); }
+  /* 桌面端（≥1200px）主内容避让侧栏：wrap 左移，不再居中 */
+  @media (min-width:1200px){
+    .wrap{ margin-left:248px; margin-right:auto; }
+  }
+  /* 移动端（<1200px）隐藏侧栏，wrap 恢复居中 */
+  @media (max-width:1199px){
+    .side-nav{ display:none; }
+  }
+
+  /* ===== TOC 顶部卡片（移动端可用，对齐七步财报） ===== */
+  .toc-card{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.7);border-radius:16px;padding:20px 24px;margin-top:20px;
+    box-shadow:var(--shadow-md);}
+  .toc-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--gray);
+    margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--gold);}
+  .toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;}
+  .toc-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;
+    text-decoration:none;color:var(--ink);border-left:3px solid transparent;transition:all .2s;}
+  .toc-item:hover{background:rgba(99,91,255,.06);border-left-color:var(--gold);transform:translateX(3px);}
+  .toc-num{font-size:12px;font-weight:800;color:var(--gold);background:var(--gold-bg);
+    border-radius:6px;padding:2px 8px;min-width:30px;text-align:center;}
+  .toc-t{font-size:13.5px;font-weight:600;}
+  .toc-d{font-size:11.5px;color:var(--gray);margin-top:1px;display:block;}
+
+  /* ===== 执行摘要 · 结论框（金色渐变，对齐七步 conclusion-wrap） ===== */
+  .conclusion-wrap{background:linear-gradient(135deg,#fdf8ee 0%,#f7efd0 100%);
+    border-radius:14px;padding:26px 28px;margin:20px 0 6px;
+    border:1px solid rgba(200,148,59,.28);box-shadow:0 2px 8px rgba(200,148,59,.12);}
+  .conclusion-wrap .ct{font-size:17px;font-weight:800;color:var(--navy);
+    margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--gold);}
+  .conclusion-wrap .cs{display:block;margin-bottom:12px;padding:12px 16px;
+    background:rgba(255,255,255,.6);border-radius:10px;border-left:3px solid var(--gold);}
+  .conclusion-wrap .cs:last-child{margin-bottom:0;}
+  .conclusion-wrap .cl{display:block;font-size:13.5px;font-weight:800;color:var(--navy);margin-bottom:6px;}
+  .conclusion-wrap .ctext{display:block;font-size:13.5px;line-height:1.85;color:var(--ink-2);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0;}
+  .kpi-card{background:var(--surface);border-radius:10px;padding:14px 16px;
+    border:1px solid var(--line);border-left:3px solid var(--gold);box-shadow:0 1px 3px rgba(10,22,40,.05);}
+  .kpi-label{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+  .kpi-value{font-size:21px;font-weight:800;color:var(--navy);}
+  .kpi-delta{font-size:12px;margin-top:3px;color:var(--gray);}
+  .kpi-delta.gold{color:var(--gold);font-weight:700;}
+  .kpi-delta.up{color:var(--red);font-weight:700;}   /* 涨红（中国惯例，对齐七步财报） */
+  .kpi-delta.down{color:var(--green);font-weight:700;} /* 跌绿 */
+
+  /* ============ 🧮 手动测算器（报告内置交互：改参数即时重算，点应用刷新正文） ============ */
+  .calc-panel{ margin:0 0 22px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(180deg,#fbfdff,#f4f8ff); box-shadow:0 2px 10px rgba(13,42,84,.06); overflow:hidden; }
+  .calc-panel .cp-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; background:var(--blue-deep); color:#fff; }
+  .calc-panel .cp-head b{ font-size:15px; letter-spacing:.5px; }
+  .calc-panel .cp-head .hint{ font-size:11px; opacity:.8; }
+  .calc-panel .cp-body{ padding:14px 16px; }
+  /* 折叠态（默认 collapsed，点开才弹） */
+  .calc-panel .cp-head{ cursor:pointer; user-select:none; }
+  .calc-panel .cp-toggle{ display:inline-block; transition:transform .2s ease; margin-right:6px; font-size:13px; }
+  .calc-panel.collapsed .cp-body{ display:none; }
+  .calc-panel.collapsed .cp-toggle{ transform:rotate(-90deg); }
+  .calc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px 14px; }
+  .calc-grid .fld{ display:flex; flex-direction:column; gap:3px; }
+  .calc-grid label{ font-size:11px; color:#5a6b85; }
+  .calc-grid input, .calc-grid select{ font-size:13px; padding:6px 8px; border:1px solid var(--line); border-radius:7px; background:#fff; color:#16243a; width:100%; box-sizing:border-box; }
+  .calc-grid input:focus, .calc-grid select:focus{ outline:none; border-color:var(--amber); box-shadow:0 0 0 2px rgba(245,180,60,.25); }
+  .calc-out{ margin-top:14px; border-top:1px dashed var(--line); padding-top:12px; }
+  .calc-out .row{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px 12px; }
+  .calc-out .cell{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px 10px; text-align:center; }
+  .calc-out .cell .k{ font-size:10px; color:#7a89a3; }
+  .calc-out .cell .v{ font-size:15px; font-weight:700; color:var(--blue-deep); margin-top:2px; }
+  .calc-out .cell.big .v{ font-size:18px; color:var(--amber); }
+  .calc-out .tiers{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px; }
+  .calc-out .tiers .t{ text-align:center; border-radius:8px; padding:8px; font-size:12px; color:#33415c; }
+  .calc-out .tiers .t.pes{ background:#eef3f8; }
+  .calc-out .tiers .t.base{ background:#eafaf1; }
+  .calc-out .tiers .t.opt{ background:#eef4ff; }
+  .calc-out .tiers .t b{ display:block; font-size:14px; margin-top:3px; color:#16243a; }
+  .calc-actions{ margin-top:12px; display:flex; gap:10px; }
+  .btn{ font-size:12px; padding:7px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--blue-deep); cursor:pointer; }
+  .btn.primary{ background:var(--amber); border-color:var(--amber); color:#3a2a00; font-weight:700; }
+  .btn:hover{ filter:brightness(.97); }
+  .calc-note{ font-size:11px; color:#7a89a3; margin-top:8px; line-height:1.5; }
+  @media (max-width:768px){
+    .calc-grid{ grid-template-columns:repeat(2,1fr); }
+    .calc-out .row{ grid-template-columns:repeat(2,1fr); }
+  }
+
+  /* ============ ① 关键数字金色荧光笔（对齐七步财报招牌细节） ============ */
+  .step b,.conclusion-wrap .ctext b,.note b{
+    background:linear-gradient(180deg,transparent 62%,rgba(200,148,59,0.22) 62%);
+    padding:0 3px;border-radius:2px;
+  }
+
+  /* ============ ② 全局噪点纹理（增加质感） ============ */
+  body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0.025;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  /* ============ ③ 表格表头金线 + 首行强调 ============ */
+  th{border-bottom:2px solid var(--gold);}
+  tbody tr:first-child td{font-weight:600;}
+  /* 交叉验证概览表：标签列加粗不换行 */
+  .cross-overview td:first-child{white-space:nowrap;font-weight:700;color:var(--ink);}
+
+  /* ============ ④ Step 标题条数字水印 ============ */
+  .step h3{position:relative;padding-right:64px;}
+  .step h3::after{content:"01";position:absolute;right:16px;top:50%;transform:translateY(-50%);
+    font-size:34px;font-weight:900;color:rgba(255,255,255,0.16);line-height:1;letter-spacing:-1px;pointer-events:none;}
+  #sec-steps .step:nth-of-type(2) h3::after{content:"02";}
+  #sec-steps .step:nth-of-type(3) h3::after{content:"03";}
+  #sec-steps .step:nth-of-type(4) h3::after{content:"04";}
+  #sec-steps .step:nth-of-type(5) h3::after{content:"05";}
+  #sec-steps .step:nth-of-type(6) h3::after{content:"06";}
+  #sec-steps .step:nth-of-type(7) h3::after{content:"07";}
+  #sec-steps .step:nth-of-type(8) h3::after{content:"08";}
+
+  /* ============ ⑤ 顶部阅读进度条（移动端 <1200px 吸顶） ============ */
+  .top-progress{position:sticky;top:0;z-index:45;height:4px;width:100%;display:none;
+    background:linear-gradient(90deg,var(--gold) var(--p,0%),transparent 0);}
+  @media (max-width:1199px){.top-progress{display:block;}}
+
+  /* ============ ⑥ 滚动渐入（无 JS 降级为可见） ============ */
+  .step,.viz{transition:opacity .55s ease,transform .55s ease;}
+  .step.reveal-init,.viz.reveal-init{opacity:0;transform:translateY(14px);}
+  .step.in-view,.viz.in-view{opacity:1;transform:none;}
+
+  /* ============ ⑦ 数据底座卡 meta-card + 可信度档位徽章 tier-badge ============ */
+  .meta-card{display:flex;gap:16px;align-items:flex-start;padding:18px 22px;
+    background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%);border-radius:14px;margin:20px 0;
+    border:1px solid rgba(99,91,255,0.14);position:relative;overflow:hidden;}
+  .meta-card::after{content:'';position:absolute;top:0;left:0;height:100%;width:4px;
+    background:linear-gradient(180deg,#635bff,#c8943b);}
+  .meta-card-icon{font-size:28px;flex-shrink:0;line-height:1;}
+  .meta-card-body{flex:1;}
+  .meta-card-eyebrow{font-size:11px;font-weight:800;color:#635bff;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;}
+  .meta-card-text{font-size:13.5px;color:#4b5563;line-height:1.75;}
+  .tier-badge{display:inline-block;padding:3px 14px;border-radius:14px;font-size:12px;font-weight:800;letter-spacing:1px;margin-left:8px;vertical-align:middle;}
+  .tier-rich{background:#e8f5e9;color:#0d7c3b;border:1.5px solid #0d7c3b;}
+  .tier-medium{background:#eaf1fb;color:#1e5fb4;border:1.5px solid #1e5fb4;}
+  .tier-lean{background:#fef3e2;color:#a86a12;border:1.5px solid #c8943b;}
+
+  /* ============ ⑧ 评级徽章 rating-badge + 风险卡片 risk-grid ============ */
+  .rating-badge{display:inline-block;padding:8px 24px;border-radius:20px;font-size:16px;font-weight:700;border:2px solid var(--gold);background:var(--gold-bg);color:var(--ink);}
+  .rating-badge.rating-buy{background:var(--green-bg);color:var(--green);border-color:var(--green);}
+  .rating-badge.rating-hold{background:var(--amber-bg);color:var(--amber);border-color:var(--gold);}
+  .rating-badge.rating-sell{background:var(--red-bg);color:var(--red);border-color:var(--red);}
+  .risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:20px 0 8px;}
+  .risk-card{background:var(--surface);border-radius:12px;padding:16px 18px;border:1px solid var(--line);border-left:4px solid;box-shadow:0 1px 3px rgba(10,22,40,.04);transition:all .2s;}
+  .risk-card:hover{transform:translateX(2px);box-shadow:0 4px 14px rgba(10,22,40,.08);}
+  .risk-card.risk-warn{border-left-color:#f59e0b;}
+  .risk-card.risk-high{border-left-color:#ef4444;}
+  .risk-card.risk-info{border-left-color:#3b82f6;}
+  .risk-card-icon{font-size:22px;margin-bottom:6px;line-height:1;}
+  .risk-card-title{font-weight:800;font-size:15px;color:var(--ink);margin-bottom:6px;}
+  .risk-card-desc{font-size:12.5px;color:var(--ink-2);line-height:1.65;}
+
+  /* ============ ⑨ Insight 卡片（"告诉普通投资者"要点） ============ */
+  .insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:20px 0;}
+  .insight-card{background:var(--surface);border-radius:12px;padding:16px 18px;border:1px solid var(--line);border-top:3px solid var(--chart-1);box-shadow:0 1px 3px rgba(10,22,40,.04);transition:all .2s;}
+  .insight-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(99,91,255,.10);}
+  .insight-icon{font-size:22px;margin-bottom:6px;line-height:1;}
+  .insight-title{font-weight:800;font-size:15px;color:var(--ink);margin-bottom:8px;}
+  .insight-desc{font-size:13px;color:var(--ink-2);line-height:1.7;}
+
+  /* ============ ⑩ 反面可能 reverse-note + 目的 step-purpose ============ */
+  .reverse-note{border-left:3px solid #94a3b8;padding:10px 16px;margin:14px 0;background:var(--off-white);border-radius:0 10px 10px 0;font-size:13.5px;color:var(--ink-2);line-height:1.7;}
+  .step-purpose{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;margin:0 18px 16px;background:var(--blue-soft);border-radius:10px;border-left:3px solid var(--chart-1);font-size:13.5px;color:var(--ink);line-height:1.7;}
+  .step-purpose-tag{font-size:11px;font-weight:800;color:var(--chart-1);background:var(--surface);border:1px solid rgba(99,91,255,0.18);padding:2px 9px;border-radius:8px;flex-shrink:0;letter-spacing:.5px;}
+
+  /* ============ ⑪ 执行摘要头 exec-summary-head ============ */
+  .exec-summary-eyebrow{font-size:11px;font-weight:800;color:var(--chart-1);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;}
+  .exec-summary-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
+  .exec-summary-badges{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+
+  /* ============ ⑫ 深色模式（data-theme + toggle + localStorage） ============ */
+  .theme-toggle{position:fixed;top:18px;right:18px;z-index:60;width:42px;height:42px;border-radius:50%;
+    border:1px solid var(--line);background:var(--surface);color:var(--gold);cursor:pointer;font-size:18px;line-height:1;
+    box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;transition:all .2s;}
+  .theme-toggle:hover{border-color:var(--gold);transform:scale(1.06);}
+  @media print{.theme-toggle{display:none!important;}}
+  [data-theme="dark"]{
+    --bg:#0c121b; --surface:#0f1722; --off-white:#0c121b;
+    --ink:#e6ebf2; --ink-2:#c0cadb;
+    --gray:#9aa7b8; --gray-2:#6b7a94;
+    --line:#243042; --axis:#33415a;
+    --blue:#5b9bf0; --blue-soft:#13203a;
+    --gold:#d4a853; --gold-light:#e0c17d; --gold-bg:#1a160c;
+    --green:#3fae6a; --green-bg:#13251a;
+    --amber:#d9ad5c; --amber-bg:#1d1606;
+    --red:#e05a5a; --red-bg:#2a1717;
+    --navy:#0b1220; --navy-mid:#16233a;
+    --chart-1:#5b9bf0;
+    --shadow-md:0 4px 16px rgba(0,0,0,.4); --shadow-lg:0 8px 32px rgba(0,0,0,.5);
+  }
+  [data-theme="dark"] body{background:linear-gradient(135deg,#0c121b 0%,#080d15 100%);}
+  [data-theme="dark"] h2,[data-theme="dark"] h3,[data-theme="dark"] .step b,
+  [data-theme="dark"] .conclusion-wrap .ct,[data-theme="dark"] .conclusion-wrap .cl,
+  [data-theme="dark"] .kpi-value,[data-theme="dark"] .risk-card-title,[data-theme="dark"] .insight-title{color:var(--ink);}
+  [data-theme="dark"] .verdict,[data-theme="dark"] .viz-title,[data-theme="dark"] details.coef summary,
+  [data-theme="dark"] .side-nav .sn-title,[data-theme="dark"] .side-nav a:hover,
+  [data-theme="dark"] .calc-out .cell .v,[data-theme="dark"] .pill.neutral,
+  [data-theme="dark"] .side-nav a{color:var(--blue);}
+  [data-theme="dark"] svg .f-blue-d{fill:var(--blue);}
+  [data-theme="dark"] .side-nav a.active{color:#fff;}
+  [data-theme="dark"] .btn{color:var(--blue);}
+  [data-theme="dark"] .btn.primary{color:#1a160c;}
+  [data-theme="dark"] .toc-card{background:rgba(15,23,34,.92);border-color:var(--line);}
+  [data-theme="dark"] .conclusion-wrap{background:linear-gradient(135deg,#1a160c 0%,#241d10 100%);border-color:#3a2f1a;}
+  [data-theme="dark"] .conclusion-wrap .cs{background:rgba(255,255,255,.04);}
+  [data-theme="dark"] .conclusion-wrap .ctext,[data-theme="dark"] .risk-card-desc,[data-theme="dark"] .insight-desc,[data-theme="dark"] .reverse-note{color:var(--ink-2);}
+  [data-theme="dark"] .calc-panel{background:linear-gradient(180deg,#0f1722,#0c121b);}
+  [data-theme="dark"] .calc-grid input,[data-theme="dark"] .calc-grid select,
+  [data-theme="dark"] .calc-out .cell{background:#0f1722;color:var(--ink);border-color:var(--line);}
+  [data-theme="dark"] .btn{background:#0f1722;border-color:var(--line);color:var(--blue);}
+  [data-theme="dark"] .btn.primary{background:var(--amber);border-color:var(--amber);color:#1a160c;}
+  [data-theme="dark"] .calc-out .tiers .t{color:var(--ink-2);}
+  [data-theme="dark"] .calc-out .tiers .t b{color:var(--ink);}
+  [data-theme="dark"] .calc-out .tiers .t.pes{background:#16233a;}
+  [data-theme="dark"] .calc-out .tiers .t.base{background:#13251a;}
+  [data-theme="dark"] .calc-out .tiers .t.opt{background:#13203a;}
+  [data-theme="dark"] .calc-grid label,[data-theme="dark"] .calc-out .cell .k,[data-theme="dark"] .calc-note{color:var(--gray);}
+  [data-theme="dark"] details.coef{background:#0f1722;}
+  [data-theme="dark"] code{background:#16233a;color:var(--ink);}
+  [data-theme="dark"] tbody tr:hover{background:#16233a;}
+  [data-theme="dark"] tbody tr:nth-child(even){background:var(--off-white);}
+  [data-theme="dark"] .toc-item:hover{background:rgba(91,155,240,.10);}
+  [data-theme="dark"] .step{box-shadow:none;}
+  [data-theme="dark"] .kpi-card{background:var(--surface);border-color:var(--line);}
+  [data-theme="dark"] .meta-card{background:linear-gradient(135deg,#16233a 0%,#0b1220 100%);border-color:rgba(91,155,240,.2);}
+  [data-theme="dark"] .meta-card-text{color:#cbd5e1;}
+  [data-theme="dark"] .reverse-note{background:#152238;border-left-color:#475569;}
+  [data-theme="dark"] .step-purpose{background:#152238;}
+  @media print{[data-theme="dark"]{--bg:#fff;--surface:#fff;--off-white:#fff;--ink:#1a1a2e;--ink-2:#3d4a63;--gray:#5a6178;--line:#d5dbe6;--gold-bg:#fdf8ee;--blue-soft:#eaf1fb;--green-bg:#e8f5e9;--amber-bg:#f6f1e7;--red-bg:#fdeaea;}}
+
+</style>
+<script>try{var t=localStorage.getItem('dv-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
+</head>
+<body>
+<button id="themeToggle" class="theme-toggle" aria-label="切换深色/亮色模式" title="切换深色模式">🌙</button>
+<div class="top-progress" id="topProgress"></div>
+<div class="wrap">
+
+  <nav class="side-nav" aria-label="报告章节导航">
+    <div class="sn-title">📑 报告导航</div>
+    <a href="#sec-overview">① 报告概览</a>
+    <a href="#sec-intro">② 通俗导言</a>
+    <a href="#sec-steps">③ 分步计算过程</a>
+    <a href="#sec-conclusion">④ 估值结论与三档情景</a>
+    <a href="#sec-cross">⑤ 强制交叉验证</a>
+    <a href="#sec-market">⑥ 各市场适配</a>
+    <a href="#sec-limit">⑦ 局限与风险</a>
+    <a href="#sec-disclaim">⑧ 免责声明</a>
+  </nav>
+
+  <!-- ============ ① 报告头 ============ -->
+  <header id="sec-overview">
+    <span class="tag">📊 动态估值法 · 梁宇峰《估值的力量》</span>
+    <h1>{{COMPANY_NAME}} · 动态估值报告</h1>
+    <div class="sub">证券代码 {{COMPANY_CODE}} ｜ 市场：{{MARKET}} ｜ 报告日期：{{REPORT_DATE}}</div>
+    <div class="sub">计价币种：{{CURRENCY}} ｜ 一致预期源：{{CONSENSUS_SRC}} ｜ 无风险利率源：{{RF_SRC}}</div>
+    <div class="hero-kpis">
+      <div class="hero-kpi"><div class="hk-k">当前股价</div><div class="hk-v" id="h-price">{{CURRENT_PRICE}}</div><div class="hk-s">总市值 {{CURRENT_MKTCAP}} 亿</div></div>
+      <div class="hero-kpi"><div class="hk-k">合理股价</div><div class="hk-v gold" id="h-rprice">{{REASONABLE_PRICE}}</div><div class="hk-s">合理价值 <span id="h-value">{{REASONABLE_VALUE}}</span> 亿</div></div>
+      <div class="hero-kpi"><div class="hk-k">估值偏差 X</div><div class="hk-v" id="h-x">{{X_VALUE}}</div><div class="hk-s">{{X_GRADE}}</div></div>
+      <div class="hero-kpi"><div class="hk-k">上行空间</div><div class="hk-v" id="h-upside">{{UPSIDE}}</div><div class="hk-s">相对当前价</div></div>
+    </div>
+  </header>
+
+  <!-- ============ 报告导航 TOC（移动端可见） ============ -->
+  <nav class="toc-card" aria-label="章节目录">
+    <div class="toc-title">📑 报告目录</div>
+    <div class="toc-grid">
+      <a class="toc-item" href="#sec-intro"><span class="toc-num">01</span><span><span class="toc-t">为什么用动态估值法</span><span class="toc-d">通俗导言</span></span></a>
+      <a class="toc-item" href="#sec-steps"><span class="toc-num">02</span><span><span class="toc-t">分步计算过程</span><span class="toc-d">Step 1–8 忠于书中公式</span></span></a>
+      <a class="toc-item" href="#sec-conclusion"><span class="toc-num">03</span><span><span class="toc-t">估值结论与三档情景</span><span class="toc-d">标尺 + 悲观/基准/乐观</span></span></a>
+      <a class="toc-item" href="#sec-cross"><span class="toc-num">04</span><span><span class="toc-t">强制交叉验证</span><span class="toc-d">7 项校验</span></span></a>
+      <a class="toc-item" href="#sec-market"><span class="toc-num">05</span><span><span class="toc-t">各市场适配</span><span class="toc-d">A / 港 / 美</span></span></a>
+      <a class="toc-item" href="#sec-limit"><span class="toc-num">06</span><span><span class="toc-t">局限与风险</span><span class="toc-d">书中明示</span></span></a>
+      <a class="toc-item" href="#sec-disclaim"><span class="toc-num">07</span><span><span class="toc-t">免责声明</span><span class="toc-d">仅供参考</span></span></a>
+    </div>
+  </nav>
+
+  <!-- ============ 数据底座卡（数据来源 + 可信度档位） ============ -->
+  <div class="meta-card">
+    <div class="meta-card-icon">📚</div>
+    <div class="meta-card-body">
+      <div class="meta-card-eyebrow">数据底座 · {{DATA_TIER_LABEL}}</div>
+      <div class="meta-card-text">一致预期源：<b>{{CONSENSUS_SRC}}</b>；无风险利率源：<b>{{RF_SRC}}</b>；报告日期 <b>{{REPORT_DATE}}</b>。{{DATA_TIER_DESC}}<span class="tier-badge {{DATA_TIER_CLASS}}">{{DATA_TIER_LABEL}}</span></div>
+    </div>
+  </div>
+
+  <!-- ============ 🧮 手动测算器（报告内置交互：改参数即时重算，点应用刷新正文） ============ -->
+  <div class="calc-panel collapsed" id="calcPanel">
+    <div class="cp-head" id="calcHead">
+      <b><span class="cp-toggle">▾</span>🧮 手动测算器 · 改数即重算</b>
+      <span class="hint">输入/拖动参数，点击「应用」刷新报告正文</span>
+    </div>
+    <div class="cp-body">
+      <div class="calc-grid">
+        <div class="fld"><label>FY1 净利(亿)</label><input id="i-fy1" type="number" step="0.01" value="{{FY1_E}}"></div>
+        <div class="fld"><label>FY2 净利(亿)</label><input id="i-fy2" type="number" step="0.01" value="{{FY2_E}}"></div>
+        <div class="fld"><label>FY3 净利(亿)</label><input id="i-fy3" type="number" step="0.01" value="{{FY3_E}}"></div>
+        <div class="fld"><label>一致预期折扣</label><input id="i-disc" type="number" step="0.01" value="{{CONSENSUS_DISCOUNT}}" min="0" max="1.5"></div>
+        <div class="fld"><label>分红支付率</label><input id="i-payout" type="number" step="0.01" value="{{PAYOUT}}" min="0" max="1"></div>
+        <div class="fld"><label>总股本(亿股)</label><input id="i-shares" type="number" step="0.01" value="{{TOTAL_SHARES}}"></div>
+        <div class="fld"><label>当前股价(元)</label><input id="i-price" type="number" step="0.01" value="{{CURRENT_PRICE}}"></div>
+        <div class="fld"><label>10Y国债(小数)</label><input id="i-rf" type="number" step="0.0001" value="{{RF_RATE_DEC}}"></div>
+        <div class="fld"><label>技术颠覆(0-1)</label><input id="i-tech" type="number" step="0.1" value="{{TECH_SCORE}}" min="0" max="1"></div>
+        <div class="fld"><label>周期波动(0-1)</label><input id="i-cycle" type="number" step="0.1" value="{{CYCLE_SCORE}}" min="0" max="1"></div>
+        <div class="fld"><label>政策抑制(0-2)</label><input id="i-policy" type="number" step="0.1" value="{{POLICY_SCORE}}" min="0" max="2"></div>
+        <div class="fld"><label>增长潜力</label><select id="i-growth">
+          <option>小幅负增长</option><option>零增长</option><option>低</option><option>中低</option><option>中等</option><option>中高</option><option>高</option><option>超高</option>
+        </select></div>
+        <div class="fld"><label>竞争格局</label><select id="i-comp">
+          <option>非常差</option><option>较差</option><option>较好</option><option>非常好</option>
+        </select></div>
+        <div class="fld"><label>护城河</label><select id="i-moat">
+          <option>没有</option><option>一定</option><option>较深</option><option>极深</option>
+        </select></div>
+      </div>
+      <div class="calc-out">
+        <div class="row">
+          <div class="cell big"><div class="k">合理价值(亿)</div><div class="v" id="o-value">—</div></div>
+          <div class="cell big"><div class="k">合理股价(元)</div><div class="v" id="o-rprice">—</div></div>
+          <div class="cell"><div class="k">估值偏差 X</div><div class="v" id="o-x">—</div></div>
+          <div class="cell"><div class="k">评级</div><div class="v" id="o-grade">—</div></div>
+        </div>
+        <div class="tiers">
+          <div class="t pes"><div>悲观合理价</div><b id="o-pes">—</b><span id="o-pes-up"></span></div>
+          <div class="t base"><div>基准合理价</div><b id="o-base">—</b><span id="o-base-up"></span></div>
+          <div class="t opt"><div>乐观合理价</div><b id="o-opt">—</b><span id="o-opt-up"></span></div>
+        </div>
+      </div>
+      <div class="calc-actions">
+        <button class="btn primary" id="btn-apply">↺ 应用并刷新报告正文</button>
+        <button class="btn" id="btn-reset">重置为原报告参数</button>
+      </div>
+      <div class="calc-note">⚠️ 报告内置交互：重算逻辑与 generate_report.py 逐位一致。点击「应用」把新结果写回正文③/④章节与标尺指针；「重置」恢复原始参数。交叉验证结论（⑤章节）为静态文本，不自动联动。</div>
+    </div>
+  </div>
+
+
+  <!-- ============ ② 通俗导言 ============ -->
+  <section id="sec-intro">
+    <h2>一、为什么用动态估值法（通俗导言）</h2>
+    <p>相对估值法（看同业PE、看历史估值）容易被市场情绪带偏，牛市给太高、熊市给太低，还会踩中"看起来便宜其实是价值陷阱"的坑；绝对估值法（DCF）最严谨，但普通投资者很难用。</p>
+    <p><b>动态估值法</b>是"披着相对估值外衣的绝对估值"：预测公司<b>3年后的有效盈利</b>，给它一个由<b>成长潜力、竞争格局、护城河</b>决定的合理倍数，折现回今天，再加上未来3年的分红，得到当前合理价值。它把估值锚定在<b>公司本身的基本面</b>，而不是市场情绪。</p>
+    <div class="note">📌 本方法追求"<b>模糊正确</b>"——结论是一个合理区间，不是一个精确数字。下方每一步都先讲"在算什么"，再给输入和结果。</div>
+    <div class="insight-grid">
+      <div class="insight-card"><div class="insight-icon">🎯</div><div class="insight-title">避开追涨杀跌</div><div class="insight-desc">相对估值（PE/PB）牛市给 50 倍、熊市给 15 倍，是"用别人价格自证合理"的循环论证。动态估值把锚定在基本面本身。</div></div>
+      <div class="insight-card"><div class="insight-icon">🔢</div><div class="insight-title">普通人也能落地</div><div class="insight-desc">DCF 要预测几十年现金流、调一堆假设；动态估值只问一句"三年后盈利放到今天值多少"，把复杂预测压缩成一步乘法 + 折现。</div></div>
+      <div class="insight-card"><div class="insight-icon">🛡️</div><div class="insight-title">留足安全边际</div><div class="insight-desc">结论是"合理区间"而非单点，配合悲观/基准/乐观三档情景，天然带上不确定性缓冲，不追求精确到分。</div></div>
+    </div>
+  </section>
+
+  <!-- ============ ②-附：系数速查 + 普通人取数（折叠） ============ -->
+  <details class="coef">
+    <summary>📊 附：系数速查表（已钉死）& 普通人如何取数（点开）</summary>
+    <h3>一、系数表（来源：老板笔记《动态估值法的详细步骤》+ 书内 A公司/恩华案例校验）</h3>
+    <table>
+      <thead><tr><th>增长潜力（第4～10年）</th><th>基准倍数</th><th>增长空间 / 复合增速</th></tr></thead>
+      <tbody>
+        <tr><td>超高</td><td>38</td><td>3倍以上，25%+</td></tr>
+        <tr><td>高</td><td>30</td><td>2～3倍，20%～25%</td></tr>
+        <tr><td>中高</td><td>24</td><td>1.5～2倍，15%～20%</td></tr>
+        <tr><td>中等</td><td>19</td><td>1～1.5倍，10%～15%</td></tr>
+        <tr><td>中低</td><td>15</td><td>0.5～1倍，5%～10%</td></tr>
+        <tr><td>低</td><td>11</td><td>&lt;50%，0%～5%</td></tr>
+        <tr><td>零增长</td><td>9</td><td>几乎零增长</td></tr>
+        <tr><td>小幅负增长</td><td>7.5</td><td>~30%负，−5%左右</td></tr>
+      </tbody>
+    </table>
+    <p class="mini">
+      <b>竞争格局系数</b>：非常好1.1（寡头垄断/CR5&gt;80%）· 较好1.0（龙头主导/CR5 60%–80%）· 较差0.9（多龙头竞争）· 非常差0.8（完全竞争）<br>
+      <b>护城河系数</b>：极深1.25（5年ROE&gt;20%&amp;毛利率&gt;40%）· 较深1.0（ROE&gt;15%&amp;毛利率&gt;30%）· 一定0.8（ROE&gt;10%&amp;毛利率&gt;20%）· 没有0.6（不满足一定）<br>
+      <b>倍数上限</b>：52.25（=38×1.1×1.25）｜ <b>贴现率</b>=国债+(5−确定性)×4%（确定性满分4）｜ <b>券商打折</b>：默认9折（书建议；可1.0关闭）<br>
+      <b>X 七档</b>：&lt;−50%严重低估 / −50%~−33%低估 / −33%~−20%偏低估 / <b>−20%~25%合理估值</b> / 25%~50%偏高估 / 50%~100%高估 / ≥100%严重高估
+    </p>
+    <h3>二、普通人如何取数（AI 辅助，笔记给出）</h3>
+    <ol>
+      <li>问 AI（DeepSeek 等）三年一致预期+出处：「公司未来三年归母净利润预测数据，一致预期是多少，请给出结果并给出具体出处」——点开出处辨别券商研究员/网友，选你认可的。</li>
+      <li>追问十年净利润+增速：取同比增长的<b>中位数与复合增长率的较小值</b>，结合行业特性预测后十年，输出表格；AI 会幻觉，用招股书/年报核对关键年。</li>
+      <li>落入模板：FY1/FY2/FY3 填 AI 结果，并<b>默认打9折</b>（书建议）。嫌麻烦可直接按年取整作 FY3 有效盈利。</li>
+    </ol>
+  </details>
+
+  <!-- ============ ③ 分步计算 ============ -->
+  <section id="sec-steps">
+    <h2>二、分步计算过程（忠于书中公式）</h2>
+
+    <div class="step">
+      <h3>Step 1 · FY3 有效盈利预测</h3>
+      <p><b>【在算什么】</b>取"当前时点起第3年"的平滑盈利。设当前为 Y年M月，则：<br>
+      <code>有效盈利 = E(Y+2)×(13−M)/12 + E(Y+3)×(M−1)/12</code>，再乘以券商打折系数（书建议打折，因券商预期偏乐观）。</p>
+      <div class="kv">
+        <div>FY1 归母净利润</div><div>{{FY1_E}} 亿</div>
+        <div>FY2 归母净利润</div><div>{{FY2_E}} 亿</div>
+        <div>FY3 归母净利润</div><div>{{FY3_E}} 亿</div>
+        <div>券商打折系数</div><div>{{CONSENSUS_DISCOUNT}}（<b>默认0.9</b>；书建议打折因券商预期偏乐观，报告内已备注说明；可设1.0关闭）</div>
+        <div><b>FY3 有效盈利</b></div><div class="ph"><b id="v-fy3eff">{{FY3_EFF_E}} 亿</b></div>
+      </div>
+      <div class="note">📌 普通人嫌麻烦可<b>直接按年取整</b>用整年 E(Y+3) 作 FY3 有效盈利（精度差异很小）；严格版用插值 <code>E(Y+2)×(13−M)/12 + E(Y+3)×(M−1)/12</code>。</div>
+    </div>
+
+    <div class="step">
+      <h3>Step 2 · 基准倍数（表3-1，看第4–10年增速）</h3>
+      <p><b>【在算什么】</b>按"未来第4–10年利润复合增速/增长空间"定档。增长潜力越高，基准倍数越大。</p>
+      <div class="kv">
+        <div>增长潜力档</div><div>{{GROWTH_TIER}}</div>
+        <div><b>基准倍数</b></div><div class="ph"><b id="v-base">{{BASE_MULT}} 倍</b></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>Step 3 · 竞争格局系数（表3-2，波特五力）</h3>
+      <p><b>【在算什么】</b>行业内现有竞争、供应商/买家议价、潜在进入者、替代品威胁越弱，系数越高。</p>
+      <div class="kv">
+        <div>竞争格局档</div><div>{{COMP_TIER}}</div>
+        <div><b>竞争格局系数</b></div><div class="ph"><b id="v-compcoef">{{COMP_COEF}}</b></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>Step 4 · 护城河系数（表3-3）</h3>
+      <p><b>【在算什么】</b>按品牌/渠道/规模经济/客户黏性/双边平台判定护城河深浅。</p>
+      <div class="kv">
+        <div>护城河档</div><div>{{MOAT_TIER}}</div>
+        <div><b>护城河系数</b></div><div class="ph"><b id="v-moatcoef">{{MOAT_COEF}}</b></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>Step 5 · 动态估值倍数</h3>
+      <p><b>【在算什么】</b>把三个基本面判断浓缩成一个市盈率倍数。<b>书规定上限 52.25 倍</b>（38×1.1×1.25），防止过度乐观。</p>
+      <div class="kv">
+        <div>计算公式</div><div>{{BASE_MULT}} × {{COMP_COEF}} × {{MOAT_COEF}}</div>
+        <div><b>动态估值倍数</b></div><div class="ph"><b id="v-mult">{{DYNAMIC_MULT}} 倍</b>　<span id="v-mult-cap">{{CAP_FLAG}}</span></div>
+      </div>
+      {{OVER_CAP_BLOCK}}
+    </div>
+
+    <div class="step">
+      <h3>Step 6 · 贴现率</h3>
+      <p><b>【在算什么】</b>把"未来的不确定性"折算成要求收益率。<code>贴现率 = 国债收益率 + (5 − 确定性得分)×4%</code>。确定性得分 = 技术颠覆(0–1)+周期波动(0–1)+政策抑制(0–2)，满分4。</p>
+      <div class="kv">
+        <div>技术颠覆得分</div><div>{{TECH_SCORE}}</div>
+        <div>周期波动得分</div><div>{{CYCLE_SCORE}}</div>
+        <div>政策抑制得分</div><div>{{POLICY_SCORE}}</div>
+        <div>确定性得分</div><div>{{CERTAINTY}} / 4</div>
+        <div>国债收益率</div><div>{{RF_RATE}}</div>
+        <div><b>贴现率</b></div><div class="ph"><b id="v-disc">{{DISCOUNT_RATE}}</b></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>Step 7 · 当前合理价值</h3>
+      <p><b>【在算什么】</b>第3年合理市值折现到现在，加上未来3年分红（不明确时以"三年净利×30%"替代）。<br>
+      <code>合理价值 = FY3有效盈利×动态倍数 ÷ (1+贴现率)³ + 三年分红（或 (FY1+FY2+FY3净利)×30%）</code><br>
+      📌 <b>9折口径</b>：券商打折（默认0.9）仅作用于 <b>FY3 有效盈利</b>；三年分红按<b>原始未打折</b>的 FY1/FY2/FY3 合计计算（与书 A公司案例一致，分红用未打折值）。</p>
+      <div class="kv">
+        <div>第3年合理市值</div><div id="v-fv3">{{FV3_MKTCAP}} 亿 = {{FY3_EFF_E}}×{{DYNAMIC_MULT}}</div>
+        <div>股利支付率</div><div>{{PAYOUT}}（A股默认0.30；港股/美股见适配块）</div>
+        <div>未来3年分红之和</div><div id="v-div">{{DIV_3YR}} 亿</div>
+        <div><b>当前合理价值</b></div><div class="ph"><b id="v-value">{{REASONABLE_VALUE}} 亿</b></div>
+        <div><b>合理股价</b></div><div class="ph"><b id="v-rprice">{{REASONABLE_PRICE}} 元</b></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>Step 8 · 估值分级</h3>
+      <p><b>【在算什么】</b><code>X = 实际市值 ÷ 合理价值 − 1</code>。书称合理估值是一个区间（约±50%），非单点。<br>
+      ⚠️ <b>X 与「上行空间」口径不同，勿混淆</b>：<b>X = 估值偏差</b>（当前市值是贵了还是便宜了百分之几）；<b>上行空间 = 合理股价 ÷ 当前价 − 1</b>（若按合理价回归还能涨百分之几）。X 为负时上行空间往往为正。</p>
+      <div class="kv">
+        <div>当前总市值</div><div id="v-mktcap">{{CURRENT_MKTCAP}} 亿</div>
+        <div>估值偏差 X</div><div class="ph"><b id="v-x">{{X_VALUE}}</b></div>
+        <div>评级</div><div id="v-grade"><span class="pill {{X_GRADE_CLASS}}">{{X_GRADE}}</span></div>
+        <div>上行空间</div><div id="v-upside">{{UPSIDE}}</div>
+      </div>
+      <table>
+        <thead><tr><th>X 区间</th><th>评级</th><th>X 区间</th><th>评级</th></tr></thead>
+        <tbody>
+          <tr><td>X &lt; −50%</td><td>严重低估</td><td>25% ≤ X &lt; 50%</td><td>偏高估</td></tr>
+          <tr><td>−50% ≤ X &lt; −33%</td><td>低估</td><td>50% ≤ X &lt; 100%</td><td>高估</td></tr>
+          <tr><td>−33% ≤ X &lt; −20%</td><td>偏低估</td><td>X ≥ 100%</td><td>严重高估</td></tr>
+          <tr><td>−20% ≤ X &lt; 25%</td><td><b>合理估值</b></td><td colspan="2">（合理估值≈±50%区间，非定点）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ④ 估值结论 + 三档情景 ============ -->
+  <section id="sec-conclusion">
+    <h2>三、估值结论与三档情景</h2>
+
+    <!-- 执行摘要：结论速览（金色框，对齐七步财报 conclusion-wrap） -->
+    <div class="conclusion-wrap">
+      <div class="exec-summary-head">
+        <div>
+          <div class="exec-summary-eyebrow">EXECUTIVE SUMMARY</div>
+          <div class="ct">🎯 估值结论速览</div>
+        </div>
+        <div class="exec-summary-badges">
+          <div class="rating-badge {{X_RATING_CLASS}}">{{X_GRADE}}</div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">当前市值</div><div class="kpi-value">{{CURRENT_MKTCAP}} 亿</div><div class="kpi-delta">当前价 {{CURRENT_PRICE}} 元</div></div>
+        <div class="kpi-card"><div class="kpi-label">合理价值</div><div class="kpi-value" id="e-value">{{REASONABLE_VALUE}} 亿</div><div class="kpi-delta gold">合理价 <span id="e-rprice">{{REASONABLE_PRICE}}</span> 元</div></div>
+        <div class="kpi-card"><div class="kpi-label">估值偏差 X</div><div class="kpi-value" id="e-x">{{X_VALUE}}</div><div class="kpi-delta" id="e-grade">{{X_GRADE}}</div></div>
+        <div class="kpi-card"><div class="kpi-label">上行空间</div><div class="kpi-value" id="e-upside">{{UPSIDE}}</div><div class="kpi-delta up">较当前价</div></div>
+      </div>
+      <div class="cs">
+        <span class="cl">核心判断</span>
+        <span class="ctext">当前市值 <b>{{CURRENT_MKTCAP}} 亿</b> vs 合理价值 <b>{{REASONABLE_VALUE}} 亿</b>（合理股价 <b>{{REASONABLE_PRICE}} 元</b>）→ 估值偏差 X = <b>{{X_VALUE}}</b>，评级 <b>{{X_GRADE}}</b>，较当前价上行空间 <b>{{UPSIDE}}</b>。</span>
+      </div>
+      <div class="cs">
+        <span class="cl">三档情景</span>
+        <span class="ctext">悲观 <b>{{PES_PRICE}} 元</b>（{{PES_X}}）｜ 基准 <b>{{BASE_PRICE}} 元</b>（{{BASE_X}}）｜ 乐观 <b>{{OPT_PRICE}} 元</b>（{{OPT_X}}）。合理估值是一段区间，不是单点。</span>
+      </div>
+    </div>
+
+    <!-- 图1 估值位置标尺 -->
+    <div class="viz">
+      <div class="viz-title">📐 估值位置标尺（横轴 = 相对合理价值的偏差 X）</div>
+      <svg viewBox="0 0 780 140" width="100%" role="img" aria-label="估值位置标尺">
+        <rect x="180" y="46" width="180" height="26" class="bg-green k-green" stroke-width="1.5"/>
+        <text x="270" y="63" text-anchor="middle" font-size="11" class="f-green">合理估值带 -20%~25%</text>
+        <line x1="20" y1="72" x2="740" y2="72" class="k-line" stroke-width="1"/>
+        <g font-size="10" class="f-gray" text-anchor="middle">
+          <line x1="20" y1="66" x2="20" y2="78" class="k-line"/><text x="20" y="92" class="f-gray">-60%</text>
+          <line x1="120" y1="66" x2="120" y2="78" class="k-line"/><text x="120" y="92" class="f-gray">-33%</text>
+          <line x1="180" y1="66" x2="180" y2="78" class="k-green"/><text x="180" y="92" class="f-gray">-20%</text>
+          <line x1="360" y1="66" x2="360" y2="78" class="k-green"/><text x="360" y="92" class="f-gray">25%</text>
+          <line x1="500" y1="66" x2="500" y2="78" class="k-line"/><text x="500" y="92" class="f-gray">60%</text>
+          <line x1="620" y1="66" x2="620" y2="78" class="k-line"/><text x="620" y="92" class="f-gray">90%</text>
+          <line x1="740" y1="66" x2="740" y2="78" class="k-line"/><text x="740" y="92" class="f-gray">120%</text>
+        </g>
+        <line id="v-ruler-line" x1="{{RULER_POS_X}}" y1="30" x2="{{RULER_POS_X}}" y2="80" class="k-red" stroke-width="3"/>
+        <polygon points="{{RULER_ARROW}}" id="v-ruler-poly" class="f-red"/>
+        <text id="v-ruler-x" x="{{RULER_TEXT_X}}" y="124" text-anchor="middle" font-size="12" font-weight="700" class="f-red">当前 X={{X_VALUE}}{{RULER_OOR}}</text>
+      </svg>
+      <div class="viz-cap">红针=当前市值对应偏差位置；落入绿色合理估值带即「合理估值」，越靠左越偏低估/低估，越靠右越高估。标尺量程 −60%~120%，超出时指针贴边并标注「超出量程」。</div>
+    </div>
+
+    <!-- 图2 三档情景股价对比 -->
+    <div class="viz">
+      <div class="viz-title">📊 三档情景合理股价对比（红虚线 = 当前价 {{CURRENT_PRICE}} 元）</div>
+      <svg viewBox="0 0 780 260" width="100%" role="img" aria-label="三档情景股价对比">
+        <line x1="50" y1="{{BAR_CUR_Y}}" x2="740" y2="{{BAR_CUR_Y}}" class="k-red" stroke-width="2" stroke-dasharray="7,4"/>
+        <text x="46" y="{{BAR_CUR_Y}}" text-anchor="end" font-size="11" class="f-red" dominant-baseline="middle">当前 {{CURRENT_PRICE}}</text>
+        <rect x="150" y="{{BAR_PES_Y}}" width="100" height="{{BAR_PES_H}}" class="f-gray2" rx="3"/>
+        <rect x="350" y="{{BAR_BASE_Y}}" width="100" height="{{BAR_BASE_H}}" class="f-green" rx="3"/>
+        <rect x="550" y="{{BAR_OPT_Y}}" width="100" height="{{BAR_OPT_H}}" class="f-blue" rx="3"/>
+        <text id="v-pes-p" x="200" y="{{BAR_PES_Y}}" text-anchor="middle" font-size="11" dy="-6" class="f-gray">🔻{{PES_PRICE}}</text>
+        <text id="v-base-p" x="400" y="{{BAR_BASE_Y}}" text-anchor="middle" font-size="11" dy="-6" class="f-green">⭐{{BASE_PRICE}}</text>
+        <text id="v-opt-p" x="600" y="{{BAR_OPT_Y}}" text-anchor="middle" font-size="11" dy="-6" class="f-blue-d">🔺{{OPT_PRICE}}</text>
+        <text x="200" y="248" text-anchor="middle" font-size="12" class="f-gray">悲观</text>
+        <text x="400" y="248" text-anchor="middle" font-size="12" class="f-gray">基准</text>
+        <text x="600" y="248" text-anchor="middle" font-size="12" class="f-gray">乐观</text>
+        <text x="50" y="16" text-anchor="start" font-size="10" class="f-gray">纵轴峰值 ≈ {{BAR_VMAX}}</text>
+      </svg>
+      <div class="viz-cap">三档情景反映假设摆动下的合理股价区间；柱越高=合理股价越高。基准情景即主结论，悲观/乐观为安全边际参考。</div>
+    </div>
+
+    <div class="legend">
+      <span>🟢 <b>绿=低估（机会）</b></span>
+      <span>🔴 <b>红=高估（风险）</b></span>
+      <span>⚠️ 此为「估值评级语义」，与行情「红涨绿跌」不同，勿混淆</span>
+    </div>
+
+    <table>
+      <thead><tr><th>情景</th><th>合理股价</th><th>较当前价上行空间</th><th>假设组合（成长／格局／护城河）</th></tr></thead>
+      <tbody>
+        <tr><td>🔻 悲观</td><td>{{PES_PRICE}}</td><td>{{PES_X}}</td><td>{{PES_TIERS}}</td></tr>
+        <tr><td>⭐ 基准</td><td>{{BASE_PRICE}}</td><td>{{BASE_X}}</td><td>{{BASE_TIERS}}</td></tr>
+        <tr><td>🔺 乐观</td><td>{{OPT_PRICE}}</td><td>{{OPT_X}}</td><td>{{OPT_TIERS}}</td></tr>
+      </tbody>
+    </table>
+    <div class="note">📐 <b>本表口径</b>：第三列统一为 <code>上行空间 = 合理股价 ÷ 当前股价 − 1</code>（三行同口径），
+    <b>不是</b>上文的估值偏差 X（X = 市值 ÷ 合理价值 − 1，方向相反）。<br>
+    <b>情景规则</b>：悲观 = 成长/格局/护城河各<b>降一档</b>、确定性 −1；乐观 = 各<b>升一档</b>、确定性 +1（贴边则维持）。
+    该规则保证 悲观 ≤ 基准 ≤ 乐观，不会出现「乐观档反而低于基准」的倒挂。</div>
+  </section>
+
+  <!-- ============ ⑤ 强制交叉验证 ============ -->
+  <section id="sec-cross">
+    <h2>四、交叉验证（★ 强制步骤，不可跳过）</h2>
+    <p>书中明确要求：因盈利/倍数含主观判断，须用盈利质量指标交叉验证（毛利率、净利率、ROE、利润增速、负债率）。<b>本区块为空或未得出校验结论，则整份报告视为未完成。</b></p>
+    <table class="cross-overview">
+      <thead><tr><th style="width:150px">指标</th><th>判定（含数据来源与档位自洽分析）</th></tr></thead>
+      <tbody>
+        <tr><td>毛利率（近3–5年均值）</td><td>{{CROSS_GROSS}}</td></tr>
+        <tr><td>净利率（近3–5年均值）</td><td>{{CROSS_NET}}</td></tr>
+        <tr><td>ROE（近3–5年均值）</td><td>{{CROSS_ROE}}</td></tr>
+        <tr><td>利润增速 CAGR</td><td>{{CROSS_GROWTH}}</td></tr>
+        <tr><td>资产负债率</td><td>{{CROSS_LEVER}}</td></tr>
+        <tr><td>同业 PE/PS 区间</td><td>{{CROSS_PEER}}</td></tr>
+        <tr><td>自身历史估值带</td><td>{{CROSS_HIST}}</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>校验项</th><th>判定</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>1. 动态倍数 ≤ 52.25</td><td>{{CHK1}}</td><td>防止过度乐观</td></tr>
+        <tr><td>2. 盈利质量匹配护城河等级</td><td>{{CHK2}}</td><td>极深→高ROE/毛利；一定→中等</td></tr>
+        <tr><td>3. FY3 增速与增长档自洽</td><td>{{CHK3}}</td><td>—</td></tr>
+        <tr><td>4. 同业比较（交叉参考）</td><td>{{CHK4}}</td><td>防相对估值陷阱</td></tr>
+        <tr><td>5. 历史估值带非极端</td><td>{{CHK5}}</td><td>—</td></tr>
+        <tr><td>6. 负债率过高→谨慎</td><td>{{CHK6}}</td><td>必要时提高贴现率</td></tr>
+        <tr><td>7. 分红/回购率 vs 假设</td><td>{{CHK7}}</td><td>美股尤须用股东回报率</td></tr>
+      </tbody>
+    </table>
+    <p class="verdict">校验结论：<span class="ph {{CROSS_CLASS}}">{{CROSS_VERDICT}}</span></p>
+    <div class="note">判定规则：全绿→"交叉验证通过，结论可信"；任一黄→"部分预警：____（列明），结论仅供参考，安全边际需增厚"；任一红→"校验不通过：____（列明），当前估值结论不可靠，建议重做假设"。</div>
+  </section>
+
+  <!-- ============ ⑥ 各市场适配（三块随 {{MARKET}} 切换，仅展示当前市场块） ============ -->
+  <section id="sec-market">
+    <h2>五、各市场适配规则</h2>
+
+    <!-- MARKET:A股 -->
+    <div class="market-block">
+      <h3>🇨🇳 A股适配</h3>
+      <ul>
+        <li><b>币种 / 无风险利率</b>：¥ 人民币；中国10年期国债收益率（中债估值）。</li>
+        <li><b>一致预期</b>：同花顺 / 东方财富一致预期（普通投资者的"锚"）。</li>
+        <li><b>股东回报</b>：分红为主，股利支付率默认 <b>30%</b>（书统计A股20–40%均值30%）。</li>
+        <li><b>特殊规则</b>：无汇率换算；AH溢价不适用；警惕"低PE=便宜"的价值陷阱（苏宁、诺基亚案例）。</li>
+      </ul>
+    </div>
+    <!-- /MARKET -->
+
+    <!-- MARKET:港股 -->
+    <div class="market-block">
+      <h3>🇭🇰 港股适配</h3>
+      <ul>
+        <li><b>币种 / 无风险利率</b>：HK$；取美/港10年期国债（HK利率跟随美国），贴现率与币种匹配。</li>
+        <li><b>一致预期</b>：券商 / 彭博 / 港股通覆盖标的；股价为HKD，盈利常披露人民币，须<b>统一货币</b>后再算。</li>
+        <li><b>股东回报</b>：分红为主，但内地投资者经港股通持股<b>红利税20%</b>，实际到手低于账面（交叉验证须提示）。</li>
+        <li><b>特殊规则</b>：① AH溢价/折价——H股通常较A股折价，合理价值应体现折价，不可直接套A股倍数；② 小市值流动性差/老千股，估值更保守；③ 中美博弈、外汇管制抬升风险溢价→政策得分更低→贴现率更高。</li>
+      </ul>
+    </div>
+    <!-- /MARKET -->
+
+    <!-- MARKET:美股 -->
+    <div class="market-block">
+      <h3>🇺🇸 美股适配</h3>
+      <ul>
+        <li><b>币种 / 无风险利率</b>：US$；美国10年期国债(UST)。</li>
+        <li><b>一致预期</b>：FactSet / S&P Capital IQ / 华尔街券商 EPS consensus。</li>
+        <li><b>会计口径</b>：明确 GAAP vs Non-GAAP。建议用 GAAP 归母净利或"正常化盈利"，避免被股票薪酬(SBC)美化。</li>
+        <li><b>股东回报</b>：美股重<b>回购</b>而非分红，"分红×30%"不适用；宜将 <code>{{PAYOUT}}</code> 替换为<b>股东回报率（分红+回购）/净利润</b>，否则低估股东回报。</li>
+        <li><b>特殊规则</b>：ADR/普通股、股票拆分、10-K/10-Q节奏、股息协定税率；成长股估值溢价普遍高于A/港。</li>
+      </ul>
+    </div>
+    <!-- /MARKET -->
+  </section>
+
+  <!-- ============ ⑦ 未考虑因素与主观局限 ============ -->
+  <section id="sec-limit">
+    <h2>六、未考虑因素与主观局限性（书中明示）</h2>
+    <div class="risk-grid">
+      <div class="risk-card risk-warn"><div class="risk-card-icon">🎲</div><div class="risk-card-title">主观偏见</div><div class="risk-card-desc">盈利/倍数选择易过度乐观或悲观；券商预期本身偏乐观，须打折或自建预测。</div></div>
+      <div class="risk-card risk-warn"><div class="risk-card-icon">🔮</div><div class="risk-card-title">点估计单可能性</div><div class="risk-card-desc">只考虑一种未来情景，未给概率分布；三档情景仅为简化示意。</div></div>
+      <div class="risk-card risk-info"><div class="risk-card-icon">⏭️</div><div class="risk-card-title">跳跃性</div><div class="risk-card-desc">第3年倍数 abrupt 估值，忽略中间路径细节。</div></div>
+      <div class="risk-card risk-info"><div class="risk-card-icon">🧭</div><div class="risk-card-title">适用期限制</div><div class="risk-card-desc">天然适配成长期/成熟期公司；初创期（易陷概念炒作）、衰退期（价值陷阱）不适用。</div></div>
+      <div class="risk-card risk-high"><div class="risk-card-icon">⚡</div><div class="risk-card-title">技术颠覆</div><div class="risk-card-desc">技术或商业模式被颠覆（数码相机→手机、线下零售→电商）会击穿护城河假设。</div></div>
+      <div class="risk-card risk-high"><div class="risk-card-icon">📜</div><div class="risk-card-title">政策突变</div><div class="risk-card-desc">集采、反垄断等政策可瞬间改写商业模式与毛利率，须提高贴现率并给结果打折。</div></div>
+      <div class="risk-card risk-warn"><div class="risk-card-icon">📖</div><div class="risk-card-title">叙事依赖</div><div class="risk-card-desc">估值前先"讲故事"，故事讲错则数字全错（达摩达兰《故事与估值》警示）。</div></div>
+      <div class="risk-card risk-info"><div class="risk-card-icon">🎯</div><div class="risk-card-title">模糊正确非定点</div><div class="risk-card-desc">合理估值本就是区间，单一数字无意义。</div></div>
+    </div>
+  </section>
+
+  <!-- ============ ⑧ 免责声明 ============ -->
+  <section id="sec-disclaim">
+    <h2>七、免责声明</h2>
+    <div class="disclaim">
+      本报告由 AI 基于公开认知与客观锚点生成，对一致预期准确性、评级假设、市场适配高度敏感。
+      动态估值追求"模糊正确"而非精确，所得合理价值/股价为<b>区间参考</b>而非定点预测。
+      <b>本报告仅供参考，不构成任何投资建议，不可据此单独决策。</b>投资有风险，决策须结合自身研究并自担风险。
+    </div>
+  </section>
+
+  <footer>动态估值报告模板 · 依据梁宇峰《估值的力量》第三章方法论 + 老板笔记《动态估值法的详细步骤》精确系数构建 · 系数已钉死（老板笔记精确值 + 书内 A公司/恩华案例校验为准绳）</footer>
+</div>
+<script>
+(function(){
+  // ===== 主题切换（深色/亮色，localStorage 持久化） =====
+  var tg = document.getElementById('themeToggle');
+  if(tg){
+    var syncIcon = function(){ tg.textContent = (document.documentElement.getAttribute('data-theme')==='dark') ? '☀️' : '🌙'; };
+    syncIcon();
+    tg.addEventListener('click', function(){
+      var cur = document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', cur);
+      try{ localStorage.setItem('dv-theme', cur); }catch(e){}
+      syncIcon();
+    });
+  }
+  // ===== 顶部阅读进度条 =====
+  var tp = document.getElementById('topProgress');
+  if(tp && 'scroll' in window){
+    var onScroll = function(){
+      var h = document.documentElement;
+      var p = (h.scrollTop || document.body.scrollTop) / ((h.scrollHeight - h.clientHeight) || 1) * 100;
+      tp.style.setProperty('--p', p + '%');
+    };
+    window.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+  }
+  // ===== 滚动渐入（无 IO 降级为可见） =====
+  var items = document.querySelectorAll('.step, .viz');
+  if(items.length && 'IntersectionObserver' in window){
+    items.forEach(function(el){ el.classList.add('reveal-init'); });
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in-view'); io.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    items.forEach(function(el){ io.observe(el); });
+  }
+  // ===== 侧栏导航高亮 =====
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('.side-nav a'));
+  if(navLinks.length){
+    var setActive = function(id){
+      navLinks.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href') === '#' + id); });
+    };
+    if('IntersectionObserver' in window){
+      var obs = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting) setActive(e.target.id); });
+      }, { rootMargin: '-20% 0px -70% 0px' });
+      document.querySelectorAll('header, section').forEach(function(s){ if(s.id) obs.observe(s); });
+    }
+  }
+})();
+</script>
+  <script>
+  (function(){
+    // ===== 内嵌重算引擎（与 generate_report.py 逐位一致） =====
+    const BASE={'超高':38,'高':30,'中高':24,'中等':19,'中低':15,'低':11,'零增长':9,'小幅负增长':7.5};
+    const COMP={'非常好':1.1,'较好':1.0,'较差':0.9,'非常差':0.8};
+    const MOAT={'极深':1.25,'较深':1.0,'一定':0.8,'没有':0.6};
+    const MULT_CAP=52.25;
+    const BASE_ORDER=['小幅负增长','零增长','低','中低','中等','中高','高','超高'];
+    const COMP_ORDER=['非常差','较差','较好','非常好'];
+    const MOAT_ORDER=['没有','一定','较深','极深'];
+    const GRADE=[[-0.50,'严重低估','low'],[-0.33,'低估','low'],[-0.20,'偏低估','low'],[0.25,'合理估值','neutral'],[0.50,'偏高估','high'],[1.00,'高估','high'],[Infinity,'严重高估','high']];
+    const $=id=>document.getElementById(id);
+    const num=id=>parseFloat($(id).value)||0;
+    const txt=id=>$(id).value;
+    function shift(order,tier,step){let i=order.indexOf(tier);return order[Math.max(0,Math.min(order.length-1,i+step))];}
+    function calc(p){
+      const fy3eff=p.fy3*p.discount;
+      const base=BASE[p.growth],c=COMP[p.comp],m=MOAT[p.moat];
+      const raw=base*c*m,over=raw>MULT_CAP,mult=over?MULT_CAP:raw;
+      const cert=(p.cert!==undefined)?p.cert:(p.tech+p.cycle+p.policy);
+      const disc=p.rf+(5-cert)*0.04;
+      const fv3=fy3eff*mult;
+      const div=(p.fy1+p.fy2+p.fy3)*p.payout;
+      const value=fv3/Math.pow(1+disc,3)+div;
+      const rprice=value/p.shares;
+      const mktcap=p.price*p.shares;
+      const X=mktcap/value-1;
+      const upside=rprice/p.price-1;
+      return {fy3eff,base,c,m,raw,over,mult,disc,fv3,div,value,rprice,mktcap,X,upside,cert};
+    }
+    function tier(p,kind){
+      if(kind==='base')return p;
+      const s=kind==='pes'?-1:1;
+      const cert0=p.tech+p.cycle+p.policy;
+      const cert=Math.max(0,Math.min(4,cert0+(kind==='pes'?-1.0:1.0)));
+      return Object.assign({},p,{growth:shift(BASE_ORDER,p.growth,s),comp:shift(COMP_ORDER,p.comp,s),moat:shift(MOAT_ORDER,p.moat,s),cert:cert});
+    }
+    function grade(x){for(const g of GRADE){if(x<g[0])return [g[1],g[2]];}return ['严重高估','high'];}
+    const f2=x=>x.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const p1=x=>(x*100).toFixed(1)+'%';
+    const sp=x=>(x>=0?'+':'')+(x*100).toFixed(1)+'%';
+    function readParams(){return {fy1:num('i-fy1'),fy2:num('i-fy2'),fy3:num('i-fy3'),discount:num('i-disc'),payout:num('i-payout'),shares:num('i-shares'),price:num('i-price'),rf:num('i-rf'),tech:num('i-tech'),cycle:num('i-cycle'),policy:num('i-policy'),growth:txt('i-growth'),comp:txt('i-comp'),moat:txt('i-moat')};}
+    function compute(){
+      const p=readParams();const r=calc(p);const [gname,gcls]=grade(r.X);
+      $('o-value').textContent=f2(r.value);$('o-rprice').textContent=r.rprice.toFixed(1);
+      $('o-x').textContent=p1(r.X);$('o-grade').textContent=gname;
+      const pes=calc(tier(p,'pes')),opt=calc(tier(p,'opt'));
+      $('o-pes').textContent=pes.rprice.toFixed(1);$('o-pes-up').textContent=' ('+sp(pes.upside)+')';
+      $('o-base').textContent=r.rprice.toFixed(1);$('o-base-up').textContent=' ('+sp(r.upside)+')';
+      $('o-opt').textContent=opt.rprice.toFixed(1);$('o-opt-up').textContent=' ('+sp(opt.upside)+')';
+      return {p,r,pes,opt,gname,gcls};
+    }
+    function rulerX(xpct){const RMIN=-60,RMAX=120;const c=Math.max(RMIN,Math.min(RMAX,xpct));return Math.round((20+(c-RMIN)*4)*10)/10;}
+    function applyToReport(){
+      const {p,r,pes,opt,gname,gcls}=compute();
+      $('v-fy3eff').textContent=f2(r.fy3eff)+' 亿';
+      $('v-base').textContent=r.base.toFixed(2)+' 倍';
+      $('v-compcoef').textContent=r.c.toFixed(2);
+      $('v-moatcoef').textContent=r.m.toFixed(2);
+      $('v-mult').textContent=r.mult.toFixed(2)+' 倍';
+      $('v-mult-cap').textContent=r.over?'⚠️ 触顶 52.25':'≤ 52.25 ✅';
+      $('v-mult-cap').className=r.over?'warn':'ok';
+      $('v-disc').textContent=p1(r.disc);
+      $('v-fv3').textContent=f2(r.fv3)+' 亿 = '+f2(r.fy3eff)+'×'+r.mult.toFixed(2);
+      $('v-div').textContent=f2(r.div)+' 亿';
+      $('v-value').textContent=f2(r.value)+' 亿';
+      $('v-rprice').textContent=r.rprice.toFixed(1)+' 元';
+      $('v-mktcap').textContent=f2(r.mktcap)+' 亿';
+      $('v-x').textContent=p1(r.X);
+      $('v-grade').textContent=gname;$('v-grade').className='pill '+gcls;
+      $('v-upside').textContent=sp(r.upside);
+      $('v-ruler-x').textContent='当前 X='+p1(r.X);
+      const cx=rulerX(r.X*100);
+      const ln=$('v-ruler-line');ln.setAttribute('x1',cx);ln.setAttribute('x2',cx);
+      const pg=$('v-ruler-poly');pg.setAttribute('points',cx+',26 '+(cx-6)+',14 '+(cx+6)+',14');
+      $('v-pes-p').textContent='🔻'+pes.rprice.toFixed(1);
+      $('v-base-p').textContent='⭐'+r.rprice.toFixed(1);
+      $('v-opt-p').textContent='🔺'+opt.rprice.toFixed(1);
+      // ===== 执行摘要 + Hero KPI 联动（v3.3 新增） =====
+      $('e-value').textContent=f2(r.value)+' 亿';
+      $('e-rprice').textContent=r.rprice.toFixed(1);
+      $('e-x').textContent=p1(r.X);
+      $('e-grade').textContent=gname;
+      $('e-upside').textContent=sp(r.upside);
+      $('h-price').textContent=p.price.toFixed(2);
+      $('h-rprice').textContent=r.rprice.toFixed(1);
+      $('h-value').textContent=f2(r.value);
+      $('h-x').textContent=p1(r.X);
+      $('h-upside').textContent=sp(r.upside);
+    }
+    // 折叠 / 展开测算器
+    $('calcHead').addEventListener('click',function(){ $('calcPanel').classList.toggle('collapsed'); });
+    ['i-fy1','i-fy2','i-fy3','i-disc','i-payout','i-shares','i-price','i-rf','i-tech','i-cycle','i-policy','i-growth','i-comp','i-moat'].forEach(id=>{$(id).addEventListener('input',compute);$(id).addEventListener('change',compute);});
+    $('btn-apply').addEventListener('click',applyToReport);
+    // 重置：恢复页面加载时的原始参数（通用，不硬编码具体标的）
+    const ORIG=readParams();
+    $('btn-reset').addEventListener('click',function(){
+      for(const k in ORIG){ const el=$('i-'+k); if(el) el.value=ORIG[k]; }
+      applyToReport();
+    });
+    compute();
+  })();
+  </script>
+
+</body>
+</html>
