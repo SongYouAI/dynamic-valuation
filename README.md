@@ -324,6 +324,7 @@ dynamic-valuation/
 ├── SKILL.md                        # 主流程与规范（8步流程/系数表/市场适配/门禁）
 ├── README.md                       # 本文件（使用说明）
 ├── LICENSE                         # MIT 许可
+├── sync.sh                         # 维护脚本：本地 → GitHub 一条命令同步
 ├── .gitignore
 ├── references/
 │   ├── valuation-formula.md        # ★ 公式与系数（系数已钉死，书内案例校验）
@@ -331,15 +332,27 @@ dynamic-valuation/
 │   ├── output-template.md          # 输出模板规范（章节顺序/字段字典）
 │   └── template-maintenance.md     # 模板升级自检流程 + 实战踩坑教训
 ├── scripts/
-│   └── generate_report.py          # JSON 参数驱动的报告生成器
-│                                    #（交叉验证阻断+市场块切换+测算器参数填充+数据可信度档位）
+│   ├── generate_report.py          # JSON 参数驱动的报告生成器
+│   └── calibrate_discount.py       # 券商打折系数实证校准
 ├── templates/
-│   ├── dynamic_valuation_report_template.html    # 报告模板（navy/gold 设计系统）
-│   ├── dynamic_valuation_report_template.html.bak    # 模板备份
-│   └── dynamic_valuation_report_template.html.bak2   # 模板备份
+│   └── dynamic_valuation_report_template.html    # 报告模板（navy/gold 设计系统）
 └── tests/
-    └── test_cases.py               # 回归测试 85 项全绿
+    └── test_cases.py               # 回归测试 117 项全绿
 ```
+
+> `references/` 为本地方法论文档，`.gitignore` 默认排除（含书中案例与笔记内容），不随公开仓库分发。
+
+---
+
+## 维护：一条命令同步到 GitHub
+
+```bash
+./sync.sh                       # 同步 + 自动提交 + 推送
+./sync.sh -m "fix: 修正 XX"      # 自定义提交说明
+./sync.sh -n                    # 演练：只显示差异，不提交
+```
+
+行为：拉取远端最新 → 覆盖本地文件（`scripts/ templates/ tests/` 镜像，本地删的仓库也删）→ 跑回归测试 → **测试不过就中止**（不提交不推送）→ 提交推送。网络方面会自动挑一个能通的本地代理（本机 `github.com` 直连常被墙），不改系统代理设置。
 
 ---
 
