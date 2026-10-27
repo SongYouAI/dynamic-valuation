@@ -6,3 +6,6 @@ __pycache__/
 *.pyo
 *.log
 .DS_Store
+
+# 本地模板备份不入库
+*.bak*

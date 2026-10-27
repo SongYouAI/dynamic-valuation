@@ -155,18 +155,189 @@ def sem_class(text):
     """按 ✅/⚠️/❌ 推断语义色类。"""
     t = str(text)
     if '❌' in t or '不通过' in t or '未通过' in t: return 'bad'
-    if '⚠️' in t or '警告' in t or '存疑' in t:    return 'warn'
+    if '⚠️' in t or '警告' in t or '存疑' in t or '预警' in t:    return 'warn'
     if '✅' in t or '通过' in t:                    return 'ok'
     return ''
 
 
 def wrap_sem(text):
-    """给校验项文本套语义色 span（空文本原样返回）。"""
+    """给校验项文本套语义色 span。已自带 span 的原样返回（防双重包裹）。"""
     t = str(text or '').strip()
     if not t:
         return ''
+    if t.startswith('<span'):
+        return t
     c = sem_class(t)
     return f'<span class="{c}">{t}</span>' if c else t
+
+
+# ---------- 排版渲染（长文本结构化：禁止糊成一坨） ----------
+def _split_clauses(t):
+    """按「；」拆分（只在括号外拆）；拆出的片段过长时再按「。」拆成句。"""
+    out, buf, depth = [], '', 0
+    for ch in t:
+        if ch in '（(':
+            depth += 1
+        elif ch in '）)' and depth > 0:
+            depth -= 1
+        if ch in '；;' and depth == 0:
+            out.append(buf)
+            buf = ''
+        else:
+            buf += ch
+    out.append(buf)
+    parts = []
+    for seg in (x.strip() for x in out if x.strip()):
+        if len(seg) <= 80:
+            parts.append(seg)
+            continue
+        buf, depth = '', 0
+        for ch in seg:
+            if ch in '（(':
+                depth += 1
+            elif ch in '）)' and depth > 0:
+                depth -= 1
+            buf += ch
+            if ch == '。' and depth == 0:
+                parts.append(buf.strip())
+                buf = ''
+        if buf.strip():
+            parts.append(buf.strip())
+    return [p for p in parts if p]
+
+
+def render_clauses(text):
+    """长句按「；」拆成带圆点的分行段；始终包一层 .clauses，保证各行左边缘对齐。"""
+    t = str(text or '').strip()
+    if not t:
+        return ''
+    parts = _split_clauses(t)
+    return '<span class="clauses">' + ''.join(f'<span class="seg">{x}</span>' for x in parts) + '</span>'
+
+
+def _num_cell(v, n=None):
+    if v is None or v == '':
+        return ''
+    try:
+        s = f2(float(v))
+    except (TypeError, ValueError):
+        s = str(v)
+    if n:
+        s += f'<span class="n">{n} 家</span>'
+    return s
+
+
+def render_consensus_tbl(c):
+    """结构化一致预期（平台 × 年份）→ 小表。缺结构时返回空串走回退分支。"""
+    if not c or not c.get('platforms'):
+        return ''
+    years = c.get('years') or ['2026E', '2027E', '2028E']
+    head = '<tr><th>一致预期平台</th>' + ''.join(f'<th>{y}</th>' for y in years) + '</tr>'
+    body = ''
+    for pl in c['platforms']:
+        cells = ''.join('<td>%s</td>' % _num_cell(x[0], x[1] if len(x) > 1 else None) for x in pl.get('cells', []))
+        body += f'<tr><td>{pl.get("name", "")}</td>{cells}</tr>'
+    ad = c.get('adopted')
+    if ad:
+        cells = ''.join('<td>%s</td>' % _num_cell(x[0] if isinstance(x, (list, tuple)) else x) for x in ad)
+        body += f'<tr class="adopted"><td>{c.get("adopted_label", "采用值 · 双平台均值")}</td>{cells}</tr>'
+    return f'<table class="prov-tbl"><thead>{head}</thead><tbody>{body}</tbody></table>'
+
+
+def render_prov_rows(rows):
+    out = ''
+    for k, v in rows:
+        if not str(v or '').strip():
+            continue
+        out += f'<div class="prov-row"><div class="prov-k">{k}</div><div class="prov-v">{v}</div></div>'
+    return out
+
+
+def render_calib(spec):
+    """系数校准说明块：title + (chips | items) + note。值位只放值，解释进这里。"""
+    if not spec:
+        return ''
+    h = '<div class="calib">'
+    if spec.get('title'):
+        h += f'<div class="calib-head">{spec["title"]}</div>'
+    chips = spec.get('chips') or []
+    if chips:
+        h += '<div class="calib-chips">' + ''.join(
+            '<span class="calib-chip%s">%s</span>' % (' current' if len(c) > 1 and c[1] else '', c[0])
+            for c in chips) + '</div>'
+    items = spec.get('items') or []
+    if items:
+        h += '<div class="calib-grid">' + ''.join(
+            f'<div class="calib-item"><span>{k}</span><b>{v}</b></div>' for k, v in items) + '</div>'
+    if spec.get('note'):
+        h += f'<p class="calib-note">{spec["note"]}</p>'
+    return h + '</div>'
+
+
+_VD_RE = re.compile(r'^\s*([✅⚠❌])\ufe0f?\s*(通过|预警|不通过|存疑)?\s*[：:]\s*')
+_VD_CLASS = {'✅': 'ok', '⚠': 'warn', '❌': 'bad'}
+_VD_LABEL = {'ok': '通过', 'warn': '预警', 'bad': '不通过'}
+
+
+def split_verdict(text):
+    """拆出「✅ 通过：」前缀 → (徽章HTML, 正文)。无前缀返回 ('', 原文)。"""
+    t = str(text or '').strip()
+    m = _VD_RE.match(t)
+    if not m:
+        return '', t
+    cls = _VD_CLASS.get(m.group(1), '')
+    label = m.group(2) or _VD_LABEL.get(cls, '')
+    mark = m.group(1) + ('\ufe0f' if cls == 'warn' else '')
+    return f'<span class="vd {cls}">{mark} {label}</span>', t[m.end():].strip()
+
+
+CROSS_ITEMS = [
+    ('gross', '毛利率', '近3–5年均值'), ('net', '净利率', '近3–5年均值'),
+    ('roe', 'ROE', '近3–5年均值'), ('growth', '利润增速', '近3年 CAGR'),
+    ('lever', '资产负债率', '最新财报'), ('peer', '同业 PE / PS', '可比公司区间'),
+    ('hist', '自身历史估值带', '近5年 PE-TTM'),
+]
+
+
+def render_cross_rows(cross):
+    """交叉验证：左指标 / 右判定卡片，长句按「；」分行。"""
+    out = ''
+    for key, label, sub in CROSS_ITEMS:
+        v = cross.get(key, '')
+        if not str(v or '').strip():
+            continue
+        chip, body = split_verdict(v)
+        chip_block = f'<div class="xv-vd">{chip}</div>' if chip else ''
+        out += (f'<div class="xv-row"><div class="xv-k">{label}<em>{sub}</em></div>'
+                f'<div class="xv-v">{chip_block}{render_clauses(body)}</div></div>')
+    return out
+
+
+def render_verdict(text, cls=''):
+    t = str(text or '').strip()
+    if not t:
+        return ''
+    chip, body = split_verdict(t)
+    if not chip:
+        m = re.match(r'^([^：:]{2,8})[：:]\s*(.+)$', t, re.S)
+        if m:
+            c = sem_class(t) or cls or 'warn'
+            chip = f'<span class="vd {c}">{m.group(1).strip()}</span>'
+            body = m.group(2)
+        else:
+            body = t
+    return ('<div class="verdict-box"><div class="vb-head">' + (chip + ' ' if chip else '') +
+            '校验结论</div>' + '<div class="clauses" style="font-size:13px;line-height:1.85;">' +
+            render_clauses(body) + '</div></div>')
+
+
+def short_label(text, limit=30):
+    """取长文首个短语做 chip 标签（无显式 label 时的兜底）。"""
+    s = re.sub(r'<[^>]+>', '', str(text or '')).strip()
+    if not s:
+        return '—'
+    s = re.split(r'[（(，,。；;]', s)[0].strip() or s
+    return s if len(s) <= limit else s[:limit] + '…'
 
 
 # ---------- 构建占位符上下文 ----------
@@ -217,6 +388,34 @@ def build_context(p):
     ctx['DATA_TIER_CLASS'] = _tier[1]
     ctx['DATA_TIER_DESC'] = _tier[2]
 
+    # ---- 一致预期 / 取数口径：结构化渲染（hero 只放短标签，长文进数据底座卡） ----
+    cons = p.get('consensus') or {}
+    ctx['CONSENSUS_LABEL'] = p.get('consensus_label') or short_label(p.get('consensus_src'))
+    ctx['RF_LABEL'] = p.get('rf_label') or short_label(p.get('rf_src'), 22)
+    ctx['CONSENSUS_TBL'] = render_consensus_tbl(cons)
+    prov = []
+    if not ctx['CONSENSUS_TBL']:
+        prov.append(('一致预期源', render_clauses(p.get('consensus_src', ''))))
+    if cons.get('cross_check'):
+        prov.append(('交叉复核', render_clauses(cons['cross_check'])))
+    if p.get('rf_src'):
+        prov.append(('无风险利率', render_clauses(p['rf_src'])))
+    prov += [tuple(x) for x in (p.get('prov_rows') or [])]
+    ctx['PROV_ROWS'] = render_prov_rows(prov)
+    _foot = []
+    if p.get('report_date'):
+        _foot.append(f'报告日期 {p["report_date"]}')
+    if cons.get('as_of'):
+        _foot.append(f'一致预期截面 {cons["as_of"]}')
+    if cons.get('fetch_note'):
+        _foot.append(cons['fetch_note'])
+    ctx['PROV_FOOT'] = ' ｜ '.join(_foot)
+
+    # ---- 系数校准说明：值位只放值 + 短标签，长解释一律进 .calib ----
+    ctx['DISCOUNT_TAG'] = p.get('discount_tag') or '已校准'
+    ctx['PAYOUT_TAG'] = p.get('payout_tag') or '已校准'
+    ctx['PAYOUT_PCT'] = f"{p['payout'] * 100:.1f}%"
+
     # ---- 倍数封顶：二选一输出 + 警告块（不再是死代码） ----
     if r['over_cap']:
         ctx['CAP_FLAG'] = (f'<span class="warn">原始 {f2(r["raw_mult"])} 倍 &gt; {MULT_CAP:g}，已封顶 ⚠️</span>')
@@ -247,6 +446,12 @@ def build_context(p):
         ctx[f'CHK{i}'] = wrap_sem(ch)
     ctx['CROSS_CLASS'] = cr.get('class') or sem_class(cr.get('verdict', ''))
 
+    # ---- 交叉验证卡片列表 + 结论框（替代窄表格塞长句） ----
+    ctx['CROSS_ROWS'] = render_cross_rows(cr)
+    ctx['VERDICT_BOX'] = render_verdict(cr.get('verdict', ''), ctx.get('CROSS_CLASS', ''))
+    ctx['DISCOUNT_CALIB'] = render_calib(p.get('discount_calib'))
+    ctx['PAYOUT_CALIB'] = render_calib(p.get('payout_calib'))
+
     # ---- 图表坐标 ----
     xp = r['X'] * 100
     rx = ruler_x(xp)
@@ -259,7 +464,15 @@ def build_context(p):
     ctx['BAR_OPT_Y'], ctx['BAR_OPT_H'] = [f"{v}" for v in bar(opt_p, Vmax)]
     ctx['BAR_CUR_Y'] = f"{bar(cur, Vmax)[0]}"
     ctx['BAR_VMAX'] = f"{Vmax:.0f} {p.get('currency', '¥')}"
-    ctx['DISCOUNT_NOTE'] = p.get('discount_note', '')
+    ctx['DISCOUNT_NOTE'] = p.get('discount_note') or (
+        '默认0.9；书建议打折因券商预期偏乐观，报告内已备注说明；可设1.0关闭')
+    ctx['PAYOUT_NOTE'] = p.get('payout_note') or 'A股默认0.30；港股/美股见适配块'
+
+    # ---- 判断链（档位选择留痕：判据/事实/临界分析/对估值的影响） ----
+    ctx['GROWTH_CHAIN'] = render_chain(p.get('growth_chain'))
+    ctx['COMP_CHAIN'] = render_chain(p.get('comp_chain'))
+    ctx['MOAT_CHAIN'] = render_chain(p.get('moat_chain'))
+    ctx['CERT_CHAIN'] = render_chain(p.get('cert_chain'))
 
     # 内部体检数据（不进模板，供 validate 使用）
     ctx['_prices'] = (pes_p, r['rprice'], opt_p)
@@ -272,6 +485,16 @@ CERT_LIMITS = {
     'cycle_score':  (0.0, 1.0, '行业周期波动（波动很小1／中等0.5／很大0）'),
     'policy_score': (0.0, 2.0, '政策抑制风险（极小2／有一定1／较大0）'),
 }
+
+
+def render_chain(chain):
+    """渲染「判断链」组件：档位选择的留痕（判据/事实/临界分析/影响）。
+    chain: [[标签, HTML内容], ...]；缺省返回空串（模板占位符被替换为空）。"""
+    if not chain:
+        return ''
+    rows = ''.join(f'<tr><th>{k}</th><td>{v}</td></tr>' for k, v in chain)
+    return ('<div class="chain"><div class="chain-head">🔗 判断链 · 为什么是这个档位</div>'
+            f'<table class="chain-tbl">{rows}</table></div>')
 
 
 def _g(v):
@@ -317,6 +540,10 @@ def validate(ctx):
     pes, base, opt = ctx.get('_prices', (0, 0, 0))
     if not (pes <= base + 1e-9 <= opt + 1e-9):
         warns.append(f'三档情景非单调（悲观{pes:.1f} / 基准{base:.1f} / 乐观{opt:.1f}），请复核情景规则')
+    for key, name in (('GROWTH_CHAIN', '增长潜力'), ('COMP_CHAIN', '竞争格局'), ('MOAT_CHAIN', '护城河'),
+                      ('CERT_CHAIN', '确定性得分')):
+        if not str(ctx.get(key, '')).strip():
+            warns.append(f'{name}档位缺少判断链（{key} 为空）：档位选择无可审阅的依据，建议补充判据/事实/临界分析')
     return errors, warns
 
 
@@ -351,6 +578,10 @@ def generate(params, tpl_path, out_path=None):
         raise SystemExit('❌ 入参体检不通过，阻断输出：\n- ' + '\n- '.join(pre))
     ctx, r = build_context(params)
     errors, warns = validate(ctx)
+    # 分红率铁律（v3.6）：支付率显著高于书中30%兜底却未提供历史依据 → 告警
+    if params.get('payout', 0.30) > 0.35 and not str(params.get('payout_note', '')).strip():
+        warns.append(f"股利支付率 {params.get('payout')} 高于书中30%兜底值，但未提供历史分红依据（payout_note 为空）："
+                     '须先查近3-5年实际分红率（分红/归母净利）再定值，禁止直接套30%或拍脑袋')
     if errors:
         raise SystemExit('❌ 阻断输出：\n- ' + '\n- '.join(errors))
     with open(tpl_path, encoding='utf-8') as f:

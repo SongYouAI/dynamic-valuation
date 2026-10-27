@@ -94,6 +94,14 @@ except SystemExit as e:
 ok_params = dict(base_params)
 ok_params['cross'] = dict(verdict='✅ 通过', checks=['✅ 通过'] * 7, gross='—', net='—',
                           roe='—', growth='—', lever='—', peer='—', hist='—')
+# v3.5：判断链（档位选择留痕）——测试样例同时充当用法示例
+_chain = [["判据", "示例判据"], ["事实与数据", "示例事实"], ["临界分析", "示例临界"], ["对估值的影响", "示例影响"]]
+ok_params['growth_chain'] = _chain
+ok_params['comp_chain'] = _chain
+ok_params['moat_chain'] = _chain
+# v3.6：确定性得分判断链 + 分红率历史依据
+ok_params['cert_chain'] = _chain
+ok_params['payout_note'] = '近3年实际分红率中位数（测试样例）'
 h, left, warns = generate(ok_params, TPL)
 check("结论非空则正常生成", len(h) > 1000 and not left, f"残留 {left}")
 
@@ -254,6 +262,87 @@ check("data_tier=L2 → 数据适中 + tier-medium",
 p_badtier = dict(ok_params); p_badtier['data_tier'] = 'X'
 ctx_t3, _ = build_context(p_badtier)
 check("无效 data_tier 回退 L1 不崩溃", ctx_t3['DATA_TIER_CLASS'] == 'tier-rich', f"实得 {ctx_t3['DATA_TIER_CLASS']}")
+
+# ============ T16【v3.5】判断链渲染 + 缺失告警 ============
+print("\n【T16】判断链（档位留痕）渲染与缺失告警")
+from generate_report import render_chain
+ctx_c, _ = build_context(ok_params)
+for key, name in (('GROWTH_CHAIN', '增长'), ('COMP_CHAIN', '竞争'), ('MOAT_CHAIN', '护城河'), ('CERT_CHAIN', '确定性')):
+    check(f"{name}判断链已渲染（含判断链标题）",
+          'chain-head' in ctx_c[key] and '判断链' in ctx_c[key], f"{key} 为空")
+check("render_chain 空入参返回空串", render_chain(None) == '' and render_chain([]) == '')
+p_nochain = dict(ok_params)
+for k in ('growth_chain', 'comp_chain', 'moat_chain', 'cert_chain'):
+    p_nochain.pop(k, None)
+_, _, warns_nc = generate(p_nochain, TPL)
+check("缺判断链 → 四条告警（不阻断）",
+      sum('缺少判断链' in w for w in warns_nc) == 4, f"实得 {warns_nc}")
+_, _, warns_ok = generate(ok_params, TPL)
+check("带判断链 → 无链告警", not any('缺少判断链' in w for w in warns_ok), f"实得 {warns_ok}")
+# 铁律五（v3.6）：高分红率无历史依据 → 告警
+p_hi = dict(ok_params); p_hi['payout'] = 0.71; p_hi.pop('payout_note', None)
+_, _, warns_hi = generate(p_hi, TPL)
+check("payout=0.71 且无 payout_note → 分红率铁律告警",
+      any('历史分红依据' in w for w in warns_hi), f"实得 {warns_hi}")
+p_ok = dict(ok_params); p_ok['payout'] = 0.71; p_ok['payout_note'] = '近3年中位71.0%'
+_, _, warns_pok = generate(p_ok, TPL)
+check("payout=0.71 有 payout_note → 无分红率告警",
+      not any('历史分红依据' in w for w in warns_pok), f"实得 {warns_pok}")
+check("PAYOUT_NOTE 缺省回退市场适配文案",
+      '港股/美股见适配块' in build_context(dict(ok_params, payout_note=''))[0]['PAYOUT_NOTE']
+      or 'A股默认0.30' in build_context(dict(ok_params, payout_note=None))[0]['PAYOUT_NOTE'])
+# 折扣说明占位符：缺省回退书中默认文案，不出现空括号
+ctx_dn, _ = build_context(ok_params)
+check("DISCOUNT_NOTE 缺省回退默认文案", '默认0.9' in ctx_dn['DISCOUNT_NOTE'], ctx_dn['DISCOUNT_NOTE'])
+p_dn = dict(ok_params); p_dn['discount_note'] = '校准值 0.95'
+ctx_dn2, _ = build_context(p_dn)
+check("DISCOUNT_NOTE 支持自定义（校准说明）", ctx_dn2['DISCOUNT_NOTE'] == '校准值 0.95')
+
+# ============ T17 排版渲染（v3.7：长文本结构化） ============
+print("\n【T17】排版渲染：一致预期小表 / 括号感知拆行 / 徽章变体符 / 校准块")
+from generate_report import (render_consensus_tbl, render_clauses, split_verdict,
+                             render_calib, render_cross_rows, render_verdict, short_label)
+
+cons = {'years': ['2026E', '2027E', '2028E'],
+        'platforms': [{'name': '东方财富 F10', 'cells': [[358.80, 19], [371.70, 19], [381.10, 17]]},
+                      {'name': '同花顺 iFinD', 'cells': [[359.08, 21], [374.18, 21], [382.92, 20]]}],
+        'adopted': [358.94, 372.94, 382.01], 'adopted_label': '采用值 · 双平台均值'}
+_tbl = render_consensus_tbl(cons)
+check("一致预期渲染成 prov-tbl 小表", 'class="prov-tbl"' in _tbl and _tbl.count('<tr') == 4, _tbl[:80])
+check("覆盖家数进 .n 副行", '19 家' in _tbl and 'class="n"' in _tbl)
+check("采纳值行高亮 adopted", 'class="adopted"' in _tbl)
+check("缺 consensus 结构返回空串（走回退）", render_consensus_tbl(None) == '' and render_consensus_tbl({}) == '')
+
+_cl = render_clauses('EPS×总股本≈净利（1.4667×244.68=358.84 vs 358.80亿；1.47×244.68=359.68 vs 359.08亿）；同花顺佐证')
+check("括号内「；」不被拆开", _cl.count('class="seg"') == 2, _cl)
+check("单句也包 .clauses（保证左边缘对齐）", render_clauses('只有一句')[0:0] == '' and 'clauses' in render_clauses('只有一句'))
+_long = render_clauses('市场按类债资产逻辑给公司定价，股息率与国债利差交易长期存在，这属于定价体系的第一层解释。'
+                       '本模型按增长速度、护城河厚度与确定性三项打分定价，这属于定价体系的第二层解释与补充说明。')
+check("超 80 字长段按「。」断句", _long.count('class="seg"') == 2, _long[:200])
+
+_chip, _body = split_verdict('⚠️ 预警：同业PE分歧')
+check("⚠️ 含变体符仍取到 warn 徽章", 'vd warn' in _chip and '预警' in _chip, _chip)
+check("徽章后正文剥离前缀", _body == '同业PE分歧', _body)
+_chip2, _body2 = split_verdict('✅ 通过：OK')
+check("✅ 取到 ok 徽章", 'vd ok' in _chip2, _chip2)
+check("无前缀时徽章为空、正文原样", split_verdict('普通文本') == ('', '普通文本'))
+
+_cal = render_calib({'title': 'T', 'items': [['a', '1'], ['b', '2']], 'note': 'N'})
+check("校准块渲染 title/items/note", all(x in _cal for x in ('calib-head', 'calib-item', 'calib-note')))
+check("chips 支持 current 高亮",
+      'calib-chip current' in render_calib({'chips': [['2025 70.92%', False], ['采用 71.0%', True]]}))
+check("render_calib 空入参返回空串", render_calib(None) == '')
+
+_rows = render_cross_rows({'gross': '✅ 通过：甲；乙', 'peer': '⚠️ 预警：丙'})
+check("交叉验证渲染 xv-row 且跳过缺失项", _rows.count('xv-row') == 2, f"{_rows.count('xv-row')}")
+check("交叉验证徽章独立成行（xv-vd）", _rows.count('xv-vd') == 2)
+
+_v = render_verdict('部分预警：甲；乙')
+check("结论框拆出「部分预警」徽章", 'verdict-box' in _v and '部分预警' in _v and _v.count('class="seg"') == 2, _v[:120])
+check("结论框空入参返回空串", render_verdict('') == '')
+
+check("short_label 截到首个短语", short_label('东方财富F10盈利预测（很长很长很长的括号内容）') == '东方财富F10盈利预测')
+check("short_label 空值返回破折号", short_label('') == '—')
 
 # ============ 汇总 ============
 print("\n" + "=" * 56)
