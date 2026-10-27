@@ -2,7 +2,7 @@
 name: dynamic-valuation
 displayName: 动态估值法
 slug: dynamic-valuation
-version: 3.6
+version: 3.8
 description: 梁宇峰《估值的力量》动态估值法 ·
   面向普通投资者版。输入A股/港股/美股公司名字或代码，取数后（AI引导或用户提供）按书中五步流程计算
   FY3有效盈利×动态估值倍数折现到当下+三年分红，输出单文件HTML估值报告（含分步推导、三档情景、强制交叉验证、三市场适配、局限性专章）。触发词：动态估值、动态估值法、估值、贵不贵、合理价、合理价格、低估、高估、target
