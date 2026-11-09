@@ -1,0 +1,468 @@
+/* ============================================================
+   HYDRO PAPER v3.0 · 动态估值法适配层（第 3 层）
+   由 scripts/generate_report.py 内联注入到 HTML head 结束标签之前，晚于
+   ① 模板内置 CSS 与 ② assets/hydro-skin.css，取得覆盖优先级。
+   原则：不改模板结构/占位符/测算器 JS，所有视觉覆盖集中在本文件。
+   规格见 references/hydro-design-spec.md；门禁 P0-A~P0-H 校验。
+   禁项：opacity:0 入场初始态 / 2px 以上粗线 / 渐变描边 / 多色强调 / 远程资源。
+   ============================================================ */
+
+/* ① ── 模板变量重映射：旧 navy-gold 令牌 → HYDRO --p-* 令牌 ──
+   模板 287 条规则大量引用 var(--navy)/var(--gold) 等，重映射后可
+   一处换肤；深色模式由 --p-* 的 html[data-theme="dark"] 反相自动跟随。 */
+:root{
+  --navy:var(--p-surface-3);
+  --navy-mid:var(--p-surface-2);
+  --gold:var(--p-accent);
+  --gold-light:var(--p-accent-ink);
+  --gold-bg:var(--p-accent-soft);
+  --ink:var(--p-ink);
+  --ink-2:var(--p-ink-2);
+  --blue:var(--p-accent);
+  --blue-deep:var(--p-ink);
+  --blue-soft:var(--p-accent-soft);
+  --gray:var(--p-ink-2);
+  --gray-2:var(--p-ink-3);
+  --line:var(--p-line);
+  --axis:var(--p-line-2);
+  --bg:var(--p-paper);
+  --surface:var(--p-surface);
+  --off-white:var(--p-surface-2);
+  --green:var(--p-good);
+  --green-bg:var(--p-surface-2);
+  --amber:var(--p-warn);
+  --amber-bg:var(--p-surface-2);
+  --red:var(--p-risk);
+  --red-bg:var(--p-surface-2);
+  --chart-1:var(--p-accent);
+  --shadow-md:var(--p-shadow);
+  --shadow-lg:var(--p-shadow);
+}
+
+/* ② ── 版心 / 侧栏留位 ───────────────────────────────────
+   .wrap 与 .report-footer 必须用同一组 max-width + padding，
+   否则页脚相对正文偏移（七步 v2.1.0 的双重左偏移事故）。 */
+.wrap{max-width:1180px;margin:0 auto;padding:0 48px 56px;}
+.report-footer{
+  max-width:1180px;margin:0 auto;padding:14px 48px 22px;
+  border-top:1px solid var(--p-line);
+}
+@media(min-width:1200px){
+  .wrap{max-width:1240px;padding-left:248px;}
+  .report-footer{max-width:1240px;padding-left:248px;}
+}
+@media(max-width:768px){
+  .wrap{padding:0 18px 40px;}
+  .report-footer{padding:12px 18px 18px;}
+}
+
+/* ③ ── Hero：暖纸底 + 96px 网格 + 等高线（对齐八维/七步） ── */
+header#sec-overview{
+  position:relative;overflow:hidden;
+  margin:0 -48px 28px;padding:48px 48px 40px;
+  background-color:var(--p-paper);
+  background-image:
+    linear-gradient(90deg,rgba(18,24,28,.028) 1px,transparent 1px),
+    linear-gradient(0deg,rgba(18,24,28,.028) 1px,transparent 1px);
+  background-size:96px 96px;
+  color:var(--p-ink);
+  border:0;border-bottom:2px solid var(--p-accent);border-radius:0;
+  box-shadow:none;
+}
+@media(min-width:1200px){header#sec-overview{margin-left:-248px;padding-left:248px;}}
+@media(max-width:768px){header#sec-overview{margin:0 -18px 22px;padding:32px 18px 28px;}}
+header#sec-overview::before,header#sec-overview::after{content:none !important;}
+header#sec-overview>*{position:relative;z-index:2;}
+.hero-art{
+  position:absolute;right:-24px;top:0;height:100%;width:min(56%,660px);
+  z-index:0;pointer-events:none;opacity:.9;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 58%,rgba(0,0,0,.18) 90%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 58%,rgba(0,0,0,.18) 90%,transparent 100%);
+}
+/* 模板有 header#sec-overview>*{position:relative;z-index:2}（优先级高于 .hero-art），
+   会把 SVG 拉回文档流、撑出约 260px 空白并把 .tag 挤到右侧 —— 必须显式压回 absolute。 */
+header#sec-overview>svg.hero-art{
+  position:absolute !important;z-index:0 !important;
+  right:-24px;top:0;height:100%;width:min(56%,660px);
+}
+/* 曲线只作背景：降低对比，避免压住 Hero KPI 数值（长飞首屏实测）。 */
+.hero-art .contour{fill:none;stroke:var(--p-accent);stroke-width:1;opacity:.10;}
+.hero-art .contour.strong{opacity:.18;}
+.hero-art .river{fill:none;stroke:var(--p-accent);stroke-width:1.5;opacity:.38;}
+.hero-art .ring{fill:none;stroke:var(--p-line-2);stroke-width:1;opacity:.55;}
+.hero-art .art-label{fill:var(--p-ink-3);font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;}
+.meta-card-icon{display:none;}   /* HYDRO 禁 emoji 图标 */
+.toc-title,.side-nav .sn-title{
+  font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  letter-spacing:.16em;color:var(--p-ink-3);
+}
+header#sec-overview h1{
+  font-family:var(--font-serif);font-size:46px;font-weight:600;
+  letter-spacing:-.02em;line-height:1.18;color:var(--p-ink);
+  text-shadow:none;margin:14px 0 12px;
+}
+header#sec-overview .sub{color:var(--p-ink-2);font-size:13px;line-height:1.85;}
+.tag{
+  display:inline-flex;align-items:center;gap:9px;
+  background:transparent;border:0;
+  border-top:1px solid var(--p-line);border-bottom:1px solid var(--p-line);
+  border-radius:0;color:var(--p-ink-2);
+  padding:7px 0;margin-bottom:8px;font-size:11.5px;letter-spacing:.08em;
+  backdrop-filter:none;
+}
+.tag::before{content:'';width:6px;height:6px;background:var(--p-accent);flex:none;}
+.hero-meta{gap:8px;margin-top:18px;}
+.hero-meta .hm{
+  background:var(--p-surface);border:1px solid var(--p-line);border-radius:6px;
+  color:var(--p-ink-2);font-size:11.5px;padding:5px 11px;
+}
+.hero-meta .hm i{color:var(--p-ink-3);font-size:9.5px;letter-spacing:.14em;}
+.hero-meta .hm b{color:var(--p-ink);}
+.hero-kpis{gap:0;margin-top:30px;border-top:1px solid var(--p-line-2);}
+.hero-kpi{
+  background:transparent;border:0;border-right:1px solid var(--p-line);
+  border-radius:0;padding:16px 18px 18px 0;backdrop-filter:none;
+}
+.hero-kpi:last-child{border-right:0;}
+.hero-kpi .hk-k{
+  font-family:var(--font-mono);font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--p-ink-3);
+}
+.hero-kpi .hk-v{font-size:22px;font-weight:700;color:var(--p-ink);margin-top:6px;}
+.hero-kpi .hk-v.gold{color:var(--p-accent);}
+.hero-kpi .hk-s{font-size:11px;color:var(--p-ink-3);margin-top:3px;}
+
+/* ④ ── 章节卡 / 标题 / Step ─────────────────────────────── */
+section{
+  background:var(--p-surface);border:1px solid var(--p-line);
+  border-radius:14px;padding:28px 32px;margin-top:22px;
+  box-shadow:var(--p-shadow);
+}
+h2{
+  font-family:var(--font-serif);font-size:22px;font-weight:600;
+  color:var(--p-ink);margin:0 0 18px;padding:0 0 14px 12px;
+  border-left:2px solid var(--p-accent);border-bottom:1px solid var(--p-line);
+}
+h3{font-family:var(--font-serif);font-size:17px;color:var(--p-ink);}
+.step{
+  background:var(--p-surface);border:1px solid var(--p-line);
+  border-radius:12px;box-shadow:var(--p-shadow);
+}
+.step h3{
+  background:var(--p-surface-2);color:var(--p-ink);
+  border-bottom:1px solid var(--p-line);
+  font-family:var(--font-serif);font-size:16px;font-weight:600;
+  letter-spacing:0;padding:12px 18px;
+}
+.step p{color:var(--p-ink-2);}
+.step b{color:var(--p-ink);background:none !important;box-shadow:none;}
+.step .kv b{background:none !important;}
+.step h3::after{color:var(--p-ink-3);opacity:.5;}
+.kv>div{border-bottom:1px solid var(--p-line);}
+.kv>div:nth-child(odd){color:var(--p-ink-2);}
+.kv>div:nth-child(even){color:var(--p-ink);}
+.kv .ph{color:var(--p-ink);}
+.kv-tag{
+  background:var(--p-surface-3);color:var(--p-good);
+  border:1px solid var(--p-line-2);border-radius:4px;font-size:10px;
+}
+.kv-tag.neutral{color:var(--p-accent);}
+
+/* ⑤ ── 表格 / 判定徽章 ─────────────────────────────────── */
+table{
+  background:var(--p-surface);border-collapse:separate;border-spacing:0;
+  border:1px solid var(--p-line);border-radius:10px;box-shadow:none;
+}
+th,td{border:0;border-bottom:1px solid var(--p-line);padding:9px 12px;color:var(--p-ink-2);}
+th{
+  background:var(--p-surface-3);color:var(--p-ink-2);
+  font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  border-bottom:1px solid var(--p-line-2);
+}
+tbody tr:nth-child(even),tbody tr:first-child td{background:transparent;}
+tbody tr:hover{background:var(--p-surface-2);}
+.prov-tbl th,.prov-tbl td{
+  background:var(--p-surface);border-bottom:1px solid var(--p-line);
+  color:var(--p-ink-2);
+}
+.prov-tbl th{background:var(--p-surface-2);color:var(--p-ink-3);}
+.prov-tbl tbody tr:nth-child(even),.prov-tbl tbody tr+tr td{background:transparent;}
+.prov-tbl tr.adopted td{background:var(--p-accent-soft) !important;color:var(--p-ink);font-weight:600;}
+.prov-tbl .n{color:var(--p-ink-3);}
+.chain-tbl th,.chain-tbl td{background:var(--p-surface);border-bottom:1px solid var(--p-line);}
+.chain-tbl th{background:var(--p-surface-2);color:var(--p-ink-2);}
+.verdict,.viz-title{color:var(--p-ink);}
+.ok,.ph.ok{color:var(--p-good);}
+.warn,.ph.warn{color:var(--p-warn);}
+.bad,.ph.bad{color:var(--p-risk);}
+.pill{
+  border-radius:999px;border:1px solid var(--p-line-2);
+  background:var(--p-surface-2);color:var(--p-ink-2);font-size:11.5px;
+}
+.pill.low{background:var(--p-surface-2);color:var(--p-good);border-color:var(--p-good);}
+.pill.neutral{background:var(--p-accent-soft);color:var(--p-accent-ink);border-color:var(--p-accent);}
+.pill.high{background:var(--p-surface-2);color:var(--p-risk);border-color:var(--p-risk);}
+td span.ok,td span.warn,td span.bad{
+  border-radius:4px;font-size:11.5px;font-weight:600;
+  background:var(--p-surface-2);border:1px solid var(--p-line-2);
+}
+td span.ok{color:var(--p-good);} td span.warn{color:var(--p-warn);} td span.bad{color:var(--p-risk);}
+.vd.ok{color:var(--p-good);} .vd.warn{color:var(--p-warn);} .vd.bad{color:var(--p-risk);}
+
+/* ⑥ ── 提示 / 代码块 / 数据底座 / 判断链 / 交叉验证 ────── */
+.note,.market-block,.reverse-note{
+  background:var(--p-surface-2);border:1px solid var(--p-line);
+  border-left:2px solid var(--p-accent);border-radius:0 8px 8px 0;
+  color:var(--p-ink-2);
+}
+.market-block{border-left-color:var(--p-warn);}
+.disclaim{border-top:1px solid var(--p-line);color:var(--p-ink-2);}
+code{background:var(--p-surface-3);color:var(--p-ink);font-family:var(--font-mono);}
+.legend,.viz-cap{color:var(--p-ink-3);}
+.viz{background:var(--p-surface);border:1px solid var(--p-line);border-radius:12px;box-shadow:var(--p-shadow);}
+details.coef{background:var(--p-surface-2);border:1px solid var(--p-line);}
+details.coef summary{color:var(--p-ink);}
+.meta-card,.calib,.xv-row,.verdict-box,.prov-row{
+  background:var(--p-surface-2);border-color:var(--p-line);color:var(--p-ink-2);
+}
+.meta-card::after{background:var(--p-accent);}
+.meta-card-title,.calib-head,.chain-head,.verdict-box .vb-head{color:var(--p-ink);}
+.meta-card-eyebrow,.prov-foot,.calib-note,.xv-k em{color:var(--p-ink-3);}
+.prov-k{color:var(--p-ink-2);} .prov-v{color:var(--p-ink-2);}
+.calib-item,.calib-chip{background:var(--p-surface);border-color:var(--p-line);color:var(--p-ink-2);}
+.calib-item b{color:var(--p-ink);}
+.calib-chip.current{background:var(--p-accent-soft);border-color:var(--p-accent);color:var(--p-accent-ink);}
+.xv-k{color:var(--p-ink);}
+.tier-badge{border:1px solid var(--p-line-2);background:var(--p-surface);color:var(--p-ink-3);}
+.tier-rich{color:var(--p-good);} .tier-medium{color:var(--p-warn);} .tier-lean{color:var(--p-risk);}
+.rating-badge.rating-buy{color:var(--p-good);border-color:var(--p-good);}
+.rating-badge.rating-hold{color:var(--p-warn);border-color:var(--p-warn);}
+.rating-badge.rating-sell{color:var(--p-risk);border-color:var(--p-risk);}
+.conclusion-wrap{
+  background:var(--p-surface-2);border:1px solid var(--p-line);
+  border-left:2px solid var(--p-accent);box-shadow:var(--p-shadow);
+}
+.conclusion-wrap .ct,.conclusion-wrap .cl,.conclusion-wrap .ctext{color:var(--p-ink);}
+.conclusion-wrap .cs{background:var(--p-surface);border:1px solid var(--p-line);}
+.kpi-card{background:var(--p-surface);border:1px solid var(--p-line);box-shadow:var(--p-shadow);}
+.kpi-card::before{background:var(--p-accent);}
+.kpi-label{color:var(--p-ink-3);} .kpi-value{color:var(--p-ink);}
+.kpi-delta.up{color:var(--p-risk);} .kpi-delta.down{color:var(--p-good);}
+.risk-card,.insight-card{background:var(--p-surface);border:1px solid var(--p-line);box-shadow:var(--p-shadow);}
+.risk-card-title,.insight-title{color:var(--p-ink);}
+.risk-card-desc,.insight-desc{color:var(--p-ink-2);}
+.risk-card-icon,.insight-icon{display:none;}
+.step-purpose{background:var(--p-surface-2);border-left:2px solid var(--p-accent);color:var(--p-ink-2);}
+.step-purpose-tag{color:var(--p-accent);background:var(--p-surface);border-color:var(--p-line);}
+
+/* ⑦ ── 目录 / 侧栏 / 主题按钮 / 进度条 ─────────────────── */
+.toc-card{
+  background:var(--p-surface);border:1px solid var(--p-line);
+  border-radius:14px;box-shadow:var(--p-shadow);backdrop-filter:none;
+  margin:24px 0 32px;padding:26px 30px;
+}
+.toc-title{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;
+  color:var(--p-ink-3);border-bottom:1px solid var(--p-line);padding-bottom:12px;
+}
+.toc-item,.toc-item:hover{
+  background:transparent;border:0;border-bottom:1px solid var(--p-line);
+  box-shadow:none;border-radius:0;
+}
+.toc-item:hover{background:var(--p-surface-2);transform:translateX(3px);}
+.toc-num{background:transparent;color:var(--p-accent);font-family:var(--font-mono);}
+.toc-t{color:var(--p-ink);} .toc-d{color:var(--p-ink-3);}
+/* visibility 是离散属性，加 transition 只会延迟显隐；只过渡 opacity / transform。 */
+.side-nav{background:transparent;transition:opacity .3s ease,transform .3s ease;}
+.side-nav .sn-title{color:var(--p-ink-3);font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;}
+.side-nav a{color:var(--p-ink-2);border-left:1px solid var(--p-line);}
+.side-nav a:hover{color:var(--p-ink);}
+.side-nav a.active{background:transparent;color:var(--p-accent);border-left-color:var(--p-accent);}
+.theme-toggle{
+  background:var(--p-surface);border:1px solid var(--p-line);
+  color:var(--p-ink-2);box-shadow:var(--p-shadow);
+}
+.theme-toggle:hover{border-color:var(--p-accent);}
+.top-progress{background:var(--p-accent);}
+
+/* ⑧ ── 内置测算器（首屏折叠卡） ───────────────────────── */
+.calc-panel{background:var(--p-surface);border:1px solid var(--p-line);box-shadow:var(--p-shadow);}
+.calc-panel .cp-head{background:var(--p-surface-2);color:var(--p-ink);border-bottom:1px solid var(--p-line);}
+.calc-panel .cp-head b{color:var(--p-ink);}
+.calc-panel .cp-head .hint{color:var(--p-ink-3);}
+.calc-grid label,.calc-out .cell .k,.calc-note{color:var(--p-ink-2);}
+.calc-grid input,.calc-grid select,.calc-out .cell{
+  background:var(--p-surface);color:var(--p-ink);border:1px solid var(--p-line-2);
+}
+.calc-grid input:focus,.calc-grid select:focus{border-color:var(--p-accent);}
+.calc-out .cell .v,.calc-out .cell.big .v{color:var(--p-ink);}
+.calc-out .tiers .t{background:var(--p-surface-2);border:1px solid var(--p-line);color:var(--p-ink-2);}
+.calc-out .tiers .t b{color:var(--p-ink);}
+.btn{background:var(--p-surface);border:1px solid var(--p-line-2);color:var(--p-ink-2);}
+.btn:hover{border-color:var(--p-accent);color:var(--p-accent);}
+.btn.primary{background:var(--p-accent);border-color:var(--p-accent);color:#fff;}
+
+/* ⑨ ── 图表 SVG 语义色跟随 HYDRO ───────────────────────── */
+svg .f-red{fill:var(--p-risk);} svg .k-red{stroke:var(--p-risk);}
+svg .f-green{fill:var(--p-good);} svg .k-green{stroke:var(--p-good);}
+svg .bg-green{fill:var(--p-surface-2);}
+svg .f-blue{fill:var(--p-accent);} svg .f-blue-d{fill:var(--p-accent-ink);}
+svg .f-gray{fill:var(--p-ink-2);} svg .f-gray2{fill:var(--p-ink-3);}
+svg .k-line{stroke:var(--p-line-2);}
+
+/* ⑩ ── 深色模式：模板 64 条 [data-theme="dark"] 硬编码覆盖 ──
+   用 html[data-theme="dark"] 提高一级优先级，统一回到 --p-*。 */
+html[data-theme="dark"] body{background:var(--p-paper) !important;}
+html[data-theme="dark"] header#sec-overview{
+  background-image:
+    linear-gradient(90deg,rgba(236,233,225,.028) 1px,transparent 1px),
+    linear-gradient(0deg,rgba(236,233,225,.028) 1px,transparent 1px);
+}
+html[data-theme="dark"] section,
+html[data-theme="dark"] .step,
+html[data-theme="dark"] .viz,
+html[data-theme="dark"] .toc-card,
+html[data-theme="dark"] .calc-panel,
+html[data-theme="dark"] .kpi-card,
+html[data-theme="dark"] .meta-card,
+html[data-theme="dark"] .risk-card,
+html[data-theme="dark"] .insight-card,
+html[data-theme="dark"] .conclusion-wrap,
+html[data-theme="dark"] details.coef,
+html[data-theme="dark"] table{background:var(--p-surface);border-color:var(--p-line);}
+html[data-theme="dark"] th,
+html[data-theme="dark"] .prov-tbl th,
+html[data-theme="dark"] .chain-tbl th,
+html[data-theme="dark"] .calc-panel .cp-head,
+html[data-theme="dark"] .step h3{background:var(--p-surface-3);color:var(--p-ink);}
+html[data-theme="dark"] .hero-meta .hm,
+html[data-theme="dark"] .calc-grid input,
+html[data-theme="dark"] .calc-grid select,
+html[data-theme="dark"] .calc-out .cell,
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .calib-item,
+html[data-theme="dark"] .calib-chip{background:var(--p-surface);color:var(--p-ink);border-color:var(--p-line);}
+html[data-theme="dark"] .btn.primary{background:var(--p-accent);color:#fff;}
+html[data-theme="dark"] h2,html[data-theme="dark"] h3,
+html[data-theme="dark"] .step b,html[data-theme="dark"] .verdict,
+html[data-theme="dark"] .viz-title,html[data-theme="dark"] details.coef summary,
+html[data-theme="dark"] .side-nav .sn-title,html[data-theme="dark"] .side-nav a,
+html[data-theme="dark"] .side-nav a:hover,html[data-theme="dark"] .calc-out .cell .v,
+html[data-theme="dark"] .pill.neutral,html[data-theme="dark"] .kpi-value,
+html[data-theme="dark"] .risk-card-title,html[data-theme="dark"] .insight-title,
+html[data-theme="dark"] .conclusion-wrap .ct,html[data-theme="dark"] .conclusion-wrap .cl,
+html[data-theme="dark"] .conclusion-wrap .ctext,html[data-theme="dark"] .risk-card-desc,
+html[data-theme="dark"] .insight-desc,html[data-theme="dark"] code{color:var(--p-ink);}
+html[data-theme="dark"] .side-nav a.active{color:var(--p-accent);}
+html[data-theme="dark"] svg .f-blue-d{fill:var(--p-accent);}
+html[data-theme="dark"] .prov-tbl td,html[data-theme="dark"] .prov-v,html[data-theme="dark"] .prov-k,
+html[data-theme="dark"] .xv-v,html[data-theme="dark"] .calib-note,
+html[data-theme="dark"] .prov-foot{color:var(--p-ink-2);background:var(--p-surface);}
+html[data-theme="dark"] .prov-tbl tr.adopted td{background:var(--p-accent-soft) !important;color:var(--p-ink);}
+
+/* ⑩ ── v3.11 数据来源汇总（卡片式） / 正文引用 / 首列断字修复 ────────── */
+.chain-tbl th{width:172px;min-width:172px;white-space:nowrap;}
+.prov-row{grid-template-columns:176px minmax(0,1fr);}
+.prov-k{white-space:normal;overflow-wrap:anywhere;min-width:0;color:var(--p-accent-ink);}
+.sec-en{color:var(--p-ink-3);}
+.src-note{color:var(--p-ink-2);}
+.src-wrap{background:var(--p-surface);border:1px solid var(--p-line);box-shadow:var(--p-shadow);}
+.src-card{border-bottom:1px solid var(--p-line);}
+.src-id{color:var(--p-accent);font-family:var(--font-mono);}
+.src-card-use,.src-card-name{color:var(--p-ink);}
+.src-card-date,.src-card-row dt{color:var(--p-ink-3);}
+.src-card-row dd{color:var(--p-ink-2);}
+a.src-a{color:var(--p-accent);border-bottom-color:var(--p-accent);}
+.src-tag{background:var(--p-surface-2);border-color:var(--p-line-2);color:var(--p-ink-3);}
+.src-tag.a{color:var(--p-good);border-color:var(--p-good);}
+.src-tag.b{color:var(--p-accent);border-color:var(--p-accent);}
+.src-tag.c{color:var(--p-warn);border-color:var(--p-warn);}
+a.ref{color:var(--p-accent);opacity:.55;}
+html[data-theme="dark"] .src-wrap,
+html[data-theme="dark"] .src-card{background:var(--p-surface);border-color:var(--p-line);}
+html[data-theme="dark"] .src-card-use,
+html[data-theme="dark"] .src-card-name{color:var(--p-ink);}
+html[data-theme="dark"] .src-card-row dd{color:var(--p-ink-2);}
+html[data-theme="dark"] a.ref,html[data-theme="dark"] a.src-a{color:var(--p-accent);}
+@media(max-width:768px){
+  .chain-tbl th{width:120px;min-width:120px;white-space:normal;word-break:keep-all;}
+  .prov-row{grid-template-columns:1fr;}
+  .prov-k{white-space:normal;}
+}
+
+/* ⑪ ── 滚动渐入 / 打印 / 响应式 ───────────────────────── */
+/* v3.14：渐入强制可见只属于 @media print（见下）。旧版误放全局，
+   hydro 交付版滚动渐入永不发生；classic 版在 IO 不派发时整章空白。 */
+@media(max-width:900px){header#sec-overview h1{font-size:34px;}.hero-art{opacity:.35;}}
+/* v3.14：模板用 min-width:1200px 给 .wrap 加 248px 左避让、max-width:1199px 才隐藏侧栏。
+   本层旧写 1200px，恰好 1200px 时两条同时命中，左侧空出约 496px。 */
+@media(max-width:1199px){.side-nav{display:none;}}
+@media print{
+  /* v3.14：本层 :root 把 --surface 等重映射到 --p-*，特异性高于模板
+     @media print 的亮色重置。深色主题打印会得到整页深底费墨，
+     因此在最高优先级的 [data-theme="dark"] 上把 --p-* 反相回亮色。 */
+  html[data-theme="dark"]{
+    --p-paper:#fff;--p-surface:#fff;--p-surface-2:#f7f8fb;--p-surface-3:#eef1f6;
+    --p-ink:#1a1a2e;--p-ink-2:#3d4a63;--p-ink-3:#5a6178;
+    --p-line:#d5dbe6;--p-line-2:#e7eaf1;
+    --p-accent:#6b5fa8;--p-accent-ink:#4b3f8f;--p-accent-soft:#f2effb;
+    --p-good:#1e7a43;--p-warn:#9a6a12;--p-risk:#b3261e;--p-shadow:none;
+  }
+  body{background:var(--p-paper) !important;color:#1a1a2e !important;}
+  .side-nav,.theme-toggle,.top-progress,.calc-actions,.calc-panel{display:none !important;}
+  header#sec-overview,.step,.viz,.toc-card,.section{break-inside:avoid;}
+  .report-footer{break-inside:avoid;}
+  .step.reveal-init,.viz.reveal-init{opacity:1 !important;transform:none !important;}
+
+  /* v3.14 打印可读性（长江电力实战复盘）：模板 @media print 为 classic 皮肤
+     写死了 header 的 navy 底 + #f0e6d0 / #b9c6de / #fff 浅色文字（带 !important）。
+     本层把 --navy 重映射成 --p-surface-3（打印态被反相为亮色），于是换肤后
+     这些 !important 浅字全部落在白底上，Hero 标题与 KPI 几乎看不见。
+     此处用 html body header#sec-overview … !important 集中压回墨色；
+     hydro-skin.css 打印段原有 .hero/.subtitle/.mt-v 选择器在本模板无对应 DOM
+     （继承自八维 skill），不能依赖它救场。门禁 P0-A 校验本段必须存在。 */
+  html body header#sec-overview{
+    background:#fff !important;background-image:none !important;
+    color:#1a1a2e !important;border-bottom:2px solid #4b3f8f !important;
+    -webkit-print-color-adjust:default;print-color-adjust:default;
+  }
+  html body header#sec-overview h1,
+  html body header#sec-overview .sub,
+  html body header#sec-overview .tag,
+  html body header#sec-overview .hero-meta .hm,
+  html body header#sec-overview .hero-meta .hm i,
+  html body header#sec-overview .hero-meta .hm b,
+  html body header#sec-overview .hero-kpi .hk-k,
+  html body header#sec-overview .hero-kpi .hk-v,
+  html body header#sec-overview .hero-kpi .hk-s,
+  html body header#sec-overview .hero-kpi .hk-v.gold{color:#1a1a2e !important;text-shadow:none !important;}
+  html body header#sec-overview .hero-kpi{background:transparent !important;border-color:#d5dbe6 !important;}
+  html body header#sec-overview .hero-meta .hm{background:#fff !important;border-color:#d5dbe6 !important;}
+  /* 模板 th / .step h3 / .cp-head 也是 --navy 底 + #fff 白字，打印反相后同样不可读 */
+  html body th,
+  html body .prov-tbl th,
+  html body .chain-tbl th,
+  html body .step h3,
+  html body .calc-panel .cp-head{background:#eef1f6 !important;color:#1a1a2e !important;}
+
+  /* v3.14 打印对比度扫描补修：模板 [data-theme="dark"] 里还有 9 处硬编码
+     深色底（#121b27/.calib、#16233a/code、#0c121b/.xv-k）与浅色字
+     （#c7d2fe/.meta-card-title、#c0cadb/.prov-tbl td:first-child）。
+     打印态 --p-* 已反相为亮色，这些硬编码不跟随，会留下「深字压深底」
+     与「浅字压白底」。同时亮色皮肤 --p-ink-3 原为 #8b9295，落在
+     --p-surface-2 上只有 2.98:1，已在 hydro-skin.css 统一压到 #646c71；
+     打印态再压到 #5a6178 保证省墨灰度下仍清晰。 */
+  html:root{--p-ink-3:#5a6178;}
+  html[data-theme="dark"] body .calib,
+  html[data-theme="dark"] body .calib-chip,
+  html[data-theme="dark"] body .xv-k,
+  html[data-theme="dark"] body code{
+    background:#f7f8fb !important;background-image:none !important;color:#1a1a2e !important;}
+  html[data-theme="dark"] body .meta-card-title,
+  html[data-theme="dark"] body .prov-tbl td:first-child,
+  html[data-theme="dark"] body .calib-head,
+  html[data-theme="dark"] body .calib-item b,
+  html[data-theme="dark"] body .calib-note{color:#1a1a2e !important;}
+}

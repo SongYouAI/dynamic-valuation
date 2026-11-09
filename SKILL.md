@@ -2,7 +2,7 @@
 name: dynamic-valuation
 displayName: 动态估值法
 slug: dynamic-valuation
-version: 3.8
+version: 3.14.0
 description: 梁宇峰《估值的力量》动态估值法 ·
   面向普通投资者版。输入A股/港股/美股公司名字或代码，取数后（AI引导或用户提供）按书中五步流程计算
   FY3有效盈利×动态估值倍数折现到当下+三年分红，输出单文件HTML估值报告（含分步推导、三档情景、强制交叉验证、三市场适配、局限性专章）。触发词：动态估值、动态估值法、估值、贵不贵、合理价、合理价格、低估、高估、target
@@ -19,14 +19,14 @@ license: MIT
 homepage: https://skillhub.cn
 ---
 
-# 动态估值法 Skill v3.6（面向普通投资者版）
+# 动态估值法 Skill v3.14（面向普通投资者版）
 
 > **方法论来源**：梁宇峰《估值的力量》第三章「动态估值确定好价格」。
 > **核心公式**：`公司的合理价值 = [未来第3年有效盈利 × 动态估值倍数 ÷ (1+贴现率)³] + 未来三年分红（或三年净利×30%）`
 > **支持市场**：A股 / 港股 / 美股（三套适配规则见第六节）
-> **输出形态**：单文件 **HTML 报告**（浏览器直开、可转 PDF）；同步可导出 Markdown 副本。
+> **输出形态**：单文件 **HTML 报告**（浏览器直开、可转 PDF）。生成器只产出 HTML，不导出 Markdown 副本（v3.14 更正旧承诺）。
 > **交叉验证**：模板**强制章节**，该区为空则报告视为未完成、阻断输出。
-> **系数基准**：老板笔记《动态估值法的详细步骤》精确值 + 书内 A公司/恩华案例校验；原书表3-1~3-5为图片，数值以笔记为准绳。
+> **系数基准**：老板笔记《动态估值法的详细步骤》精确值 + 书内 A公司（第三章简化算例）/恩华（第五章公式校验）案例校验；原书表3-1~3-5为图片，数值以笔记为准绳。
 
 ---
 
@@ -35,7 +35,7 @@ homepage: https://skillhub.cn
 **为什么要学这个？** 大多数人买股票只看两个东西：股价涨跌、PE 高低。但这俩都容易骗人。
 
 - ❌ **相对估值（PE/PB）会追涨杀跌**：同样的公司，牛市 PE 给 50 倍、熊市给 15 倍。用 PE 判断贵贱，等于"用别人给的价格，反过来证明价格合理"——典型的循环论证。书里专门用苏宁、诺基亚举例，低 PE 也可能是价值陷阱。
-- ❌ **DCF（现金流折现）普通人难落地**：要预测几十年自由现金流、还要调一堆假设，参数一变结果天差地别。
+- ❌ **DCF（现金流折现）普通人难落地**：要一路预测到稳定态（通常 7~15 年，逐年 5~10 年加永续期），还要调一堆假设，参数一变结果天差地别。
 - ✅ **动态估值法的核心思路**：它只问一个问题——**"这家公司三年后的盈利，放到今天值多少钱？"** 把复杂预测压缩成"第3年盈利 × 一个合理倍数 ÷ 折现 + 三年分红"。书里说这叫"模糊正确"：不求精确数字，只求把价格框在一个舒服的区间里。
 
 **一句话定位**：动态估值法 = 用第3年盈利给公司"拍个合理总价"，再和当前市值比一比，看是贵了还是便宜了。区间内（±25%）都算"合理估值"，**单一数字没有意义**。
@@ -135,7 +135,7 @@ Step 8 输出 HTML 报告（含 §1导言 + 分步推导 + 三档情景 + 交叉
 
 ### 每一步的通俗说明
 
-- **Step 1 取数**：去哪拿数？普通人最省力的办法是**问 AI（DeepSeek 等）要"三年一致预期+出处"**（笔记§1.2 给出的取数 SOP，见 `references/valuation-formula.md` §六）。拿到 FY1/FY2/FY3 后**默认打 9 折**（书第3311行原话："券商的盈利预测绝大部分是过于乐观的……打个折比较明智"），并在报告里备注说明；想保守就保持 9 折，想用原始值就设 1.0。
+- **Step 1 取数**：去哪拿数？普通人最省力的办法是**问 AI（DeepSeek 等）要"三年一致预期+出处"**（笔记§1.2 给出的取数 SOP，见 `references/valuation-formula.md` §六）。拿到 FY1/FY2/FY3 后**默认打 9 折**【工程规则】（书第3311行原话："券商的盈利预测绝大部分是过于乐观的……打个折比较明智"，**未给折扣率**，0.9 为 AI 自定），并在报告里备注说明；想保守就保持 9 折，想用原始值就设 1.0。
 - **Step 2 评级**：这一步是"给公司定性"——它未来增长多快（定基准倍数）、行业里地位稳不稳（定竞争系数）、有没有护城河（定护城河系数）、未来确定不确定（定贴现率）。全部用**客观数字（ROE、毛利率、HHI）优先**，没有数字才主观判断并降级。**护城河与周期波动必须横向/纵向比"同行与历史"，不能拿一条绝对阈值套所有行业**：护城河比同业 ROE 分位，周期波动比历年「预期 vs 实际」偏差。
 - **Step 3 倍数与贴现率**：把"增长+竞争+护城河"三个定性判断浓缩成一个市盈率倍数（封顶 52.25 防过度乐观）；贴现率则是"无风险利率 + 风险溢价"，公司越不确定，溢价越高、估值越低。
 - **Step 4 算总价**：第3年盈利 × 倍数，折回今天，再加三年分红 —— 这就是公司"合理总价"。
@@ -148,7 +148,7 @@ Step 8 输出 HTML 报告（含 §1导言 + 分步推导 + 三档情景 + 交叉
 
 ## 四、系数表（已钉死，来源：老板笔记 + 书内案例校验）
 
-> 以下数值经老板笔记《动态估值法的详细步骤》精确给出，并与书内 A公司案例（中等=19、较差竞争=0.9、一定护城河=0.8）、恩华案例（3999–4003行公式校验）100% 吻合。原书表3-1~3-5 为图片，以此为最终准绳。
+> 以下数值经老板笔记《动态估值法的详细步骤》精确给出，并与书内 A公司案例（第三章简化算例：中等=19、较差竞争=0.9、一定护城河=0.8）、恩华案例（第五章 3999–4003 行公式校验）100% 吻合。原书表3-1~3-5 为图片，以此为最终准绳。
 
 ### 4.1 基准倍数表（增长潜力，看第4～10年增速，比等级取较小值）
 
@@ -223,7 +223,7 @@ Step 8 输出 HTML 报告（含 §1导言 + 分步推导 + 三档情景 + 交叉
 > 3. **已知设计局限**：政策维度 2 分仅三档刻度，「较小但非极小」无处安放，按忠于书原则取离散档，并在判断链中给出升/降档敏感性（含 cert 全满的上限测试），让读者自判。
 
 ```
-动态估值倍数最大值 = 38 × 1.1 × 1.25 = 52.25 倍（超过则触发"评级过于乐观"警告）
+动态估值倍数最大值 = 38 × 1.1 × 1.25 = 52.25 倍（书中原上限，书里称「见仁见智」、反映作者风险偏好；超过触发警告为【工程规则】）
 贴现率 = 10年期国债收益率 + (5 - 确定性得分) × 4%
 ```
 
@@ -240,9 +240,9 @@ X < −50%            严重低估
 X ≥ 100%            严重高估
 ```
 
-> ⚠️ **券商一致预期打折**：默认 **9 折**（书第3311行建议）。报告内须备注说明原因（券商预期偏乐观）；可设 `CONSENSUS_DISCOUNT=1.0` 关闭。懒于判断时保持 9 折更稳妥。
+> ⚠️ **券商一致预期打折**：默认 **9 折**【工程规则】。书第3311行只说「打个折比较明智」、**未给折扣率**，0.9 为 AI 自定。报告内须备注说明原因（券商预期偏乐观）；可设 `CONSENSUS_DISCOUNT=1.0` 关闭。懒于判断时保持 9 折更稳妥。
 >
-> **v3.5 起支持实证校准**（替代一刀切 0.9）：用免费代理指标（历史盈利波动率 σ₁ + 收入端驱动量波动率 σ₂）按事前锁定公式 `discount = clip(round((1.10−composite)×20)/20, 0.90, 1.00)` 计算公司特定折扣，其中 `composite = 0.6σ₁+0.4σ₂`；一般 A 股锚 σ=0.27 → 0.9，与书连续。规则与脚本见 `references/consensus-discount-calibration.md` + `scripts/calibrate_discount.py`。折扣只修正「券商系统性乐观」一重功能，安全边际与方法简化对冲不因校准拆除，故设下限 0.90。**长电实战值：0.95**（σ₁=0.1464、σ₂=0.1659 → composite=0.1542 → 0.9458 → 0.95；回测 P25=0.867）。
+> **v3.5 起支持实证校准**（替代一刀切 0.9）：用免费代理指标（历史盈利波动率 σ₁ + 收入端驱动量波动率 σ₂）按事前锁定公式 `discount = clip(round((1.10−composite)×20)/20, 0.90, 1.00)` 计算公司特定折扣，其中 `composite = 0.6σ₁+0.4σ₂`；一般 A 股锚 σ=0.27 → 0.9，与本 Skill 默认值连续（书未给折扣率）。规则与脚本见 `references/consensus-discount-calibration.md` + `scripts/calibrate_discount.py`。折扣只修正「券商系统性乐观」一重功能，安全边际与方法简化对冲不因校准拆除，故设下限 0.90（**仅校准器**；生成器 `validate_params()` 允许 `0 < consensus_discount <= 1.5` 供敏感性分析，不强制该下限）。**长电实战值：0.95**（σ₁=0.1464、σ₂=0.1659 → composite=0.1542 → 0.9458 → 0.95；回测 P25=0.867）。
 
 ---
 
@@ -300,6 +300,8 @@ X ≥ 100%            严重高估
 ## 八、强制交叉验证清单（模板内置，不可跳过）
 
 > 依据书第3771–3779、3827–3831行：因盈利/倍数含主观判断，须交叉验证。模板该章节**未填写或 `{{CROSS_VERDICT}}` 为空 → 生成器阻断输出**。
+>
+> **归属分账**【书中判据】：与一致预期比较、合理的收入和利润规模、合理的毛利率和净利率、合理的负债率；与绝对估值对照时用毛利率、净利率、ROE、利润增速、负债率。【工程规则】：下列七项清单的拆分、「缺一即阻断」、倍数上限、增速自洽、同业 PE/PS、自身历史估值带、分红回购校验。书里另有「股本扩张比例作为估值折扣因子」，本 Skill 未纳入。
 
 逐项打勾，任一项红 → 结论降级或标注"不可靠"：
 
@@ -328,21 +330,73 @@ X ≥ 100%            严重高估
 | 6 | 总股本来源已标注？ | 补充来源 |
 | 7 | 分红/股东回报来源已标注（实际 or 利润×30% / 美股回购率）？ | 补充说明 |
 | 8 | 市场适配块正确渲染（A/港/美）？ | 核对 MARKET |
-| 9 | 交叉验证章节非空且 `{{CROSS_VERDICT}}` 有结论？ | **阻断输出** |
+| 9 | 交叉验证结论、七项明细 `CROSS_ROWS`、`CHK1~7` 全部非空？ | **阻断输出**；v3.14 起只给 verdict 不再放行 |
 | 10 | 估值判定与 X 值一致？ | 重新计算 X |
 | 11 | 一致预期**与 T3 行情**是否**本轮联网取数**（东财/同花顺/Wind），非复用工作区旧 CSV？取的是「**当前预测**」而非「上一个月预测」？来源+日期+覆盖机构家数已标注？`EPS×总股本≈归母净利` 且 `现价×总股本≈市值`？ | 重新联网取数，补 `consensus_src` 来源与日期 |
+| 12 | HYDRO 门禁 P0-A~P0-H 全过？三层 CSS 内联、footer 为 body 直接子元素、2 张二维码 base64、零远程**资源**、侧栏初始隐藏、出处章节、测算器 id 与固定免责声明在位？ | **阻断输出**，检查 `apply_skin()` / `validate_hydro()` |
+| 12b | 出处区是卡片式（`src-list` / `src-card` / `src-card-fields`），零旧窄列 `src-tbl` 残留？长文本字段宽 ≥600px、最多 3 行？ | **阻断输出**，按 §九·七 重跑浏览器探针 |
+| 13 | 六档视口（375/700/1060/1200/1440/1600，**含断点值 1200**）页脚与正文左对齐差为 0、KV 0 重叠、测算器在首屏？空目录打开 CSS/二维码/JS 正常？ | 按 `references/hydro-design-spec.md` §7 / §11 重跑验收 |
+| 14 | `sources` 每条都有可核查 URL 或「转引 · 未取得原文链接」标注？正文研报 / 搜索内容均有 `[S##]` 上标？ | **阻断输出**，补 `params.sources`（见 §九·七） |
+| 15 | 侧栏首屏隐藏、滚过 Hero 才显示？判断链 / 取数口径首列无断字、标签不压进值列？测算器在首屏（`#calcHead` 的 y < 视口高）？ | 按 §九·七 重跑浏览器验收；KV 用几何矩形相交判据，1200px 断点必测 |
+| 16 | 模板无未定义占位符？生成器遇未知 `{{KEY}}` 直接阻断，不静默渲染成破折号；参数文本自带 `{{KEY}}` 也在替换后二次阻断 | **阻断输出**，修正模板 / 参数；跑 T21 + T23 |
+| 17 | 入参体检覆盖必需字段 / 档位 / 市场 / 利率 / 支付率 / **确定性三项类型 / NaN·Infinity**？测算器重置后折扣率恢复、X 带符号、倍数封顶判据与服务端一致？ | 跑 T21 + T23 + Chrome 三档视口探针 |
+| 18 | params 文本已过白名单净化？正文 `[S##]` 均可追到 `sources`？ | 跑 T22；未定义引用 / 非法链接 / 无链接未标转引一律阻断 |
+| 19 | 分红率有 `payout_note` 或 `payout_basis` 且非 `x` / `TODO` 占位符？测算器输入清空后不产生 NaN / Infinity？ | 跑 T22 + T23 + Chrome 空输入探针；无依据且 >35% 阻断 |
+| 20 | `</head>` 用 rfind 定位、三层 CSS 落在 `<body>` 前？校准 spec 通过 `validate_spec()`？ | 跑 T22 |
 
 ---
 
 ## 九·五、模板维护与升级规范（改模板前必读）
 
-> 模板 `templates/dynamic_valuation_report_template.html` 已完成 v3.4 视觉升级（对齐「七步财报分析」设计系统：navy/gold 主色、深蓝渐变 Hero、深色模式、数据底座卡、风险卡片、金色荧光笔、噪点纹理等）。**任何后续模板改动，先读 `references/template-maintenance.md`**，内含：
+> 模板 `templates/dynamic_valuation_report_template.html` 自 **v3.9 起默认 HYDRO PAPER v3.0 皮肤**（与八维行业分析、七步财报分析同源：暖纸底 / 宋体标题 / 等高线 Hero / 固定侧栏 / 蓝色唯一强调 / 二维码 brand 页脚 / 零远程资源）。旧的 navy/gold 深蓝金棕表现仅由 `skin='classic'` 保留作对比，不用于交付。**任何后续模板或皮肤改动，先读 `references/hydro-design-spec.md` 与 `references/template-maintenance.md`**，后者内含：
 
 - **升级自检 7 步流程**：node --check → DOM-stub 模拟点击「应用」→ 85 项回归 → 10 点审计 → 标签配平 → 深色模式 grep 排查 → 打印场景核对。
 - **实战踩坑教训**：测算器 JS 运行时字段错误（`r.price`→`p.price`）、深色模式优先级误伤/fill-vs-color/硬编码遗漏、打印场景 fixed/sticky 隐藏与渐入强制可见、涨红跌绿中国惯例、生成器改动三步同步。
 - **设计系统约定**：文字色用 `--ink`（深色变浅）、背景色用 `--navy`/`--blue-deep`（深色保持深），新增组件走 CSS 变量禁止硬编码。
 
-**三条红线（改模板不能碰）**：测算器 31 个 id（`v-*`21 + `e-*`5 + `h-*`5）、三档情景 SVG 坐标占位符（`RULER_*`/`BAR_*`）、`<!-- MARKET:xxx -->` 市场块切换注释。改前先备份 `.bakN`。
+**三条红线（改模板不能碰）**：测算器 33 个 id（`v-*`21 + `e-*`7 + `h-*`5）、三档情景 SVG 坐标占位符（`RULER_*`/`BAR_*`）、`<!-- MARKET:xxx -->` 市场块切换注释。改前先备份 `.bakN`。
+
+**换肤新增三条红线（v3.9）**：① 三层 CSS 必须整段内联，禁止 `src="assets/..."`；② `<footer class="report-footer">` 必须是 `<body>` 直接子元素、与 `.wrap` 兄弟；③ Hero 等高线 SVG 必须用 `header#sec-overview>svg.hero-art{position:absolute!important}` 压回绝对定位。详见 `references/hydro-design-spec.md` §3–§5。
+
+---
+
+## 九·六、HYDRO PAPER v3.0 皮肤设置（v3.9 引入 / v3.10 沿用，改设置前必读）
+
+**默认版式**：`params` 不写 `skin` 即启用；写 `skin='classic'` 只用于换肤前后截图对比，**不得交付**。
+
+| 设置项 | 文件 | 作用 |
+|---|---|---|
+| 皮肤本体 | `assets/hydro-skin.css` | 与八维 skill 同名字节一致；设计令牌、共享组件（`.toc-card` / `.side-nav` / `.report-footer` / `.brand-*`） |
+| 适配层 | `assets/dynamic-adapt.css` | 旧 `--navy/--gold/--ink` 令牌重映射到 `--p-*`；覆盖 `header` / `.step` / `.kv` / `.calc-panel` / `.prov-tbl` / `.xv` / `.calib` / `svg .f-*` |
+| 作者溯源 | `assets/brand.json` | `qr_wechat_data` / `qr_video_data` 两张 base64；方法名写「动态估值法 · 松幽」；**不含远程 URL** |
+| 注入与门禁 | `scripts/generate_report.py` | `apply_skin()` 注入三层 CSS + Hero 等高线 + brand 页脚 + 灯箱 JS；`validate_hydro()` P0-A~P0-H 不通过即阻断输出 |
+| 回归 | `tests/test_cases.py::T18 / T20 / T21 / T22 / T23` | 三层样式 / 页脚层级 / 二维码 / 零远程资源 / 测算器 id / 固定免责 / classic 开关 / 侧栏 / 出处体系 / 入参体检 / 前后端一致性 / 富文本净化 / 出处引用门禁 / 分红率铁律 / 校准器体检 |
+
+**P0-E 口径（v3.10 收窄）**：只禁远程「资源」（`src` / `<link href>` / `@import` / `url()`），`<a href="https://...">` 作为可核查出处链接放行。单文件自包含不变：CSS / JS / 二维码仍全部内联。
+
+---
+
+## 九·七、数据来源汇总与侧栏交互契约（v3.10 引入 / v3.11 改卡片式，改设置前必读）
+
+**背景**：v3.9 换肤只搬了 HYDRO 的 CSS，没搬 DOM 与 JS 行为（侧栏首屏常驻）；报告也没有「数据来源汇总」章节，研报 / 搜索内容只写「需核实原文」，无可核查链接。v3.10 补齐。
+
+| 契约 | 实现 | 门禁 |
+|---|---|---|
+| 侧栏首屏隐藏 | `<nav class="side-nav nav-hidden">` 初始带隐藏态；`IntersectionObserver` 观察 `#sec-overview` + `scroll/resize` 几何兜底（`hero.bottom>120 && hero.top<innerHeight*0.5`），Hero 可见→隐藏，滚过→显示。兜底保证 IO 不派发的环境仍正常；`visibility` 不加 transition（离散属性，加过渡只会延迟显隐） | P0-G：初始 class + `classList.toggle('nav-hidden'` 缺一即阻断 |
+| 首列不断字 | `.chain-tbl th{width:172px;min-width:172px;white-space:nowrap}`；`.prov-row` 首列 `176px` + `.prov-k{white-space:normal;overflow-wrap:anywhere;min-width:0}`（模板 `templates/dynamic_valuation_report_template.html` 与适配层 `assets/dynamic-adapt.css` **两处同步**；适配层内联在 `</head>` 前、优先级更高）；`≤768px` 首列降为 `1fr` | 浏览器量测：`.prov-k` 文字右边界 ≤ `.prov-v` 左边界、`scrollWidth ≤ clientWidth`；静态回归断言列宽与换行契约 |
+| 出处六元组（v3.11 卡片式） | `params.sources` → `render_sources()` → `{{SOURCES_TBL}}` → `#sec-sources`；每条一张 `.src-card`，顶行编号 / 用途 / 分级 / 日期 / 核查链接，下方全宽 `.src-card-fields` 列来源名称、本报告引用、口径；字段 `id/use/name/value/caliber/tier/url/date`。**禁止退回 7 列窄表**：版心仅 878px，旧 `min-width:880px` 表会把长文本拆 6–9 行 | P0-H：sources 非空、字段齐全、编号唯一、url 必须 http(s)；`src-list` / `src-card` / `src-card-fields` 在位；检出 `class="src-tbl"` 即阻断 |
+| 正文上标引用 | 研报 / 搜索内容后加 `<a class="ref" href="[URL]" target="_blank" rel="noopener">[S##]</a>`，编号与汇总表一致 | 外部链接必须 `target="_blank"` + `rel` 含 `noopener`；禁 `javascript:` / `data:` / `href="#"` |
+| 不编造链接 | `url` 为空 → 渲染「转引 · 未取得原文链接」，`tier` 标「转引」，`caliber` 写明原因 | `validate_params()` 不要求 url 必填，但禁止留白不标；`validate_hydro()` 禁止空链接冒充 |
+
+**取数要求**：跑报告前把每条引用（行情接口、一致预期、年报、分红、研报、媒体、利率）落成 `sources` 条目，附 URL 或明确转引标注。禁止在正文写「需核实原文」却不给汇总表条目。
+
+**回归**：`tests/test_cases.py::T20` 覆盖侧栏初始态 / 滚动 JS / 首列宽度 / 出处卡片列表 / 旧窄表阻断 / 链接安全 / P0-E 收窄。验收脚本另量出处区高度、长文本行数、字段宽度。
+
+---
+
+**输出形态不变**：单文件 HTML、浏览器直开、可转 PDF。三层 CSS、两张二维码、灯箱 JS 全部内联，复制到无 `assets/` 的空目录仍完整工作。
+
+**验收硬指标**：1060 / 1440 / 1600 三档视口下 `.brand-block` 的 `getBoundingClientRect().x` 必须等于 `#sec-disclaim` 的 x（差 0）；`footer.parentElement.tagName === 'BODY'`；2 张二维码 `naturalWidth>0`；console 0 错误。
 
 ---
 
@@ -362,7 +416,7 @@ def get_consensus_np(code: str, total_shares: float, discount: float = 0.9) -> d
     1. eastmoney_reports(code) → 东财研报一致预期 EPS
     2. ths_eps_forecast(code) → 同花顺一致预期 EPS
     3. EPS(元/股) × 总股本(亿股) = 归母净利润(亿元)
-    4. 返回原始值 + 打折值（默认 discount=0.9，书建议；可设1.0关闭）
+    4. 返回原始值 + 打折值（默认 discount=0.9 为 AI 自定，书仅建议打折未给率；可设1.0关闭）
     """
 ```
 
@@ -396,13 +450,15 @@ A股：eastmoney_individual_info(code) → f84 总股本(万股)/10000 = 亿股
 ## 十一、输出要求（HTML 为最终形态）
 
 ### HTML 报告（用 `templates/dynamic_valuation_report_template.html` 模板）
-单文件，浏览器直开，含：报告头 / 通俗导言 / Step1–8 三段式推导 / 三档情景卡片 / **强制交叉验证章节** / 三市场适配块 / 局限性专章 / 免责声明。存储到工作区，文件名 `动态估值报告_[公司名]_[YYYYMMDD].html`。
+单文件，浏览器直开，含：报告头 / 通俗导言 / Step1–8 三段式推导 / 三档情景卡片 / **强制交叉验证章节** / 三市场适配块 / 局限性专章 / 免责声明 / 二维码 brand 页脚。存储到工作区，文件名 `动态估值报告_[公司名]_[YYYYMMDD].html`。
+
+**v3.11 版式 / 出处硬约束**：默认 HYDRO PAPER v3.0（见 §九·六），三层 CSS 与二维码全部内联；报告单独转发不得依赖同目录 `assets/`；页脚必须是 `<body>` 直接子元素；侧栏首屏隐藏；**必须带 `sources` 与 `#sec-sources` 数据来源汇总章节**，研报 / 搜索内容给可核查链接或明确转引标注（见 §九·七）。交付前过 `validate_hydro()` 与 T18 / T20。
 
 ### Markdown 副本（可选）
 同一份内容导出 `.md` 便于存档/腾讯文档，结构同 HTML。
 
 ### 报告章节顺序（强制）
-① 报告头 → ② 通俗导言 → ③ 分步计算(Step1-8) → ④ 估值结论(合理价值/股价/X分级/三档情景) → ⑤ 强制交叉验证 → ⑥ 各市场适配 → ⑦ 未考虑因素与局限 → ⑧ 免责声明。
+① 报告头 → ② 通俗导言 → ③ 分步计算(Step1-8) → ④ 估值结论(合理价值/股价/X分级/三档情景) → ⑤ 强制交叉验证 → ⑥ 各市场适配 → ⑦ 未考虑因素与局限 → ⑧ 免责声明 → ⑨ 数据来源汇总（可核查链接 · 卡片式六元组）。
 
 ---
 
@@ -461,15 +517,16 @@ A股：eastmoney_individual_info(code) → f84 总股本(万股)/10000 = 亿股
 
 > 自 v3.2 起，每份 HTML 报告**首屏**内置「🧮 手动测算器」折叠卡片，无需重跑生成器即可在浏览器里实时改写参数、刷新报告正文。
 
-- **位置**：报告头之后、导言之前；默认**折叠**（仅露深蓝标题条），点标题展开/收起（箭头旋转动画）。老板反馈"埋在中段看不到" → 已钉死置于首屏。
+- **位置**：`<header id="sec-overview">` 之后、目录卡与数据底座之前；默认**折叠**（仅露深蓝标题条）。老板反馈"埋在中段看不到" → v3.2 钉死首屏；v3.4 引入 `meta-card` 时被挤到 y≈2212px，**v3.14 把整块搬回 Hero 之后，实测 y≈471px（1060 视口）**，六档视口均在首屏内。
 - **输入**：15 个参数（FY1-3 净利 / 一致预期折扣 / 分红支付率 / 总股本 / 当前股价 / 10Y国债 / 确定性三项 / 增长·格局·护城河下拉），默认值由**本报告真实参数**填充。
+  > **v3.9 精度修复**：`i-fy1/2/3` / `i-shares` / `i-payout` / `i-price` 的 `value` 改用 `*_RAW` 全精度占位符（服务端原值），不再用正文展示用的 2 位小数。旧版「重置为原报告参数」后 FY3 有效盈利差 0.01 亿、三年分红差约 0.6 亿（实测长飞 120.22→120.21）。回归见 T19。
 - **重算引擎**：内嵌 JS 复刻 `generate_report.py` 的 `calc + scenario + 评级` 逻辑，**逐位一致**（含三档情景 cert 整体±1、标尺 clamp、倍数封顶 52.25）；`node --check` + DOM stub 闭环验证通过。
 - **交互**：
   - 输入/拖动即**实时预览**合理价值 / 合理股价 / X / 评级 / 三档价；
   - 点「↺ 应用并刷新报告正文」→ 写回 **③ 分步计算全部数值 + ④ 执行摘要 KPI/结论段 prose/评级徽章/三档情景表/柱状图几何 + 标尺指针**，并自动滚动定位到④章节、按钮短暂反馈「✅ 已应用到正文」；
-  - **v3.3 起联动范围扩展**：除正文 21 个 `v-*` id 外，同步刷新 **Hero KPI 行**（`h-price`/`h-rprice`/`h-value`/`h-x`/`h-upside`）与 **④ 执行摘要 KPI**（`e-value`/`e-rprice`/`e-x`/`e-grade`/`e-upside`）；
+  - **v3.3 起联动范围扩展**：除正文 21 个 `v-*` id 外，同步刷新 **Hero KPI 行**（`h-price`/`h-rprice`/`h-value`/`h-x`/`h-upside`，5 个）与 **④ 执行摘要 KPI**（`e-value`/`e-rprice`/`e-x`/`e-grade`/`e-upside`/`e-mktcap`/`e-curprice`，7 个）；
   - **v3.5 起补齐历史缺口**：④ 章节结论段 prose（`c-*` 12 个）、评级徽章（`r-badge`）、三档情景表（`t-*` 9 个）、柱状图几何（`b-*`，含柱高/当前价虚线/纵轴峰值，与生成器 `bar()` 逐位一致）全部接入联动；标尺文字补「超出量程」提示；修复基准档「确定性 undefined」。
-  - 点「重置为原报告参数」→ 恢复页面加载时的原始参数（`const ORIG=readParams()`，通用，不硬编码具体标的）。
+  - 点「重置为原报告参数」→ 恢复页面加载时的原始参数（v3.14 用 `ORIG_RAW` 未修补副本回写；`ORIG` 会被 `FALLBACK` 修补，直接用它会把兜底常量当成原值）。
 - **已知边界**：⑤ 交叉验证章节为静态文本，**不随测算器联动**（其结论基于原报告假设，改参数后需人工复核该章）。
 - **判断链（v3.5 新增，档位留痕）**：Step 2/3/4 的档位选择（增长潜力/竞争格局/护城河）渲染「🔗 判断链」组件——判据、事实与数据、临界分析（为何不是上一档/下一档）、对估值的影响。由参数 `growth_chain`/`comp_chain`/`moat_chain`（`[[标签, HTML], ...]`）驱动；**缺失时生成器告警（不阻断）**，因档位是估值最敏感的主观输入，必须留痕可审。
 - **实现要点**：模板注入测算器 CSS/HTML/JS 并给正文关键数值挂 `id`（`v-fy3eff`/`v-value`/`v-rprice`/`v-x`/`v-ruler-line` 等 21 个）；生成器新增 `{{RF_RATE_DEC}}`（小数国债率，避免 JS 解析 `1.72%` 字符串崩溃）与 `set_select()` 后处理给下拉注入 `selected`。
@@ -487,7 +544,74 @@ A股：eastmoney_individual_info(code) → f84 总股本(万股)/10000 = 亿股
 
 ---
 
-> **版本**：v3.8 | **更新**：2026-10-27 | **方法论**：梁宇峰《估值的力量》第三章
+> **版本**：v3.14 | **更新**：2026-11-09 | **方法论**：梁宇峰《估值的力量》第三章
+>
+> **v3.14 变更（长江电力实战复盘 + 全面审计：正确性 / 门禁 / 版式）**
+> | 类别 | 修复 / 新增项 |
+> |---|---|
+> | 取数口径 KV 排版 | `.prov-row` 首列 `132px + white-space:nowrap` 让 4 行长标签横向压进值列 15~25px。改 `176px + white-space:normal;overflow-wrap:anywhere;min-width:0`，**模板与 `assets/dynamic-adapt.css` 两处同步**（适配层内联在 `</head>` 前、优先级更高，只改模板无效）；六档视口量测 12 行全单行、0 重叠 |
+> | 测算器首屏 | v3.4 引入 `meta-card` 后测算器被挤到 y≈2212px。整块搬回 Hero 之后、目录卡之前，实测 y≈471px（1060 视口），六档视口均在首屏内 |
+> | 入参层 | `json.load` 接受字面量 `NaN` / `Infinity`，旧 `<=0` 判据全部放行 → 所有数值字段加 `math.isfinite`；`>0` 改 `not (v>0)`；确定性三项纳入 `NUM_FIELDS`，字符串入参不再抛裸 `TypeError` |
+> | 交叉验证 | `verdict='<br>'` / 七项明细全空仍出报告。新增 `_plain()` 去标签判空、`CROSS_ROWS` 非空、`CHK1~7` 缺项阻断；`checks` 少于 7 项先补齐，报错不再是误导性的「模板未定义占位符」 |
+> | 占位符 / 市场块 | 参数文本自带 `{{KEY}}` 只告警不阻断 → 替换后二次阻断；`keep_market()` 注释名与 `market` 不匹配会静默删光三块 → 生成前断言注释名 |
+> | 分红 / 出处 | `payout_basis='x'` 可绕过 P0-P → 弱占位符集合拦截；`source_refs_audit()` 与 `render_sources()` 统一自动补号（省略 id 不再误杀）；`tier` 加白名单 |
+> | 门禁加固 | P0-E 补 `srcset/poster/data`、无引号属性、协议相对 `//`；P0-H href 引号可选 + 忽略大小写；P0-F 由 4 个 id 扩为全量 `$('...')` / `getElementById('...')` 与 `id=` 比对；旧署名 footer 带属性也能删 |
+> | 渲染健壮性 | brand 页脚全量转义 + `.get()` 回退；`render_consensus_tbl` / `render_calib` / `render_prov_rows` 拒绝类型混淆（字符串不再被拆成值和家数） |
+> | 前端 | 重置回写未修补的 `ORIG_RAW`；`v-grade` 改操作内层 `span`；滚动渐入加 IO 未派发兜底；适配层全局 `opacity:1!important` 误杀渐入的规则收回 print 块；`1200px` 断点统一为 `1199px`；深色打印把 `--p-*` 反相回亮色（对照实验：平均亮度 37 → 245） |
+> | 打印可读性（收尾深挖） | 亮度对照只证明「背景变白」，没证明「字能看清」。全 DOM 对比度扫描发现模板 `@media print` 的 `!important` 浅色 Hero 文字在 HYDRO 白纸上仅 1.10:1，而 `hydro-skin.css` 打印段整段选择器指向不存在的 `.hero` DOM（继承自八维 skill 的死 CSS）。已在第 3 层适配层集中压回墨色并重写 hydro-skin 打印段；另补深色主题 9 处硬编码深底 / 浅字（`.calib` / `code` / `.xv-k` / `.meta-card-title` / `.prov-tbl td:first-child`） |
+> | 对比度令牌 | `--p-ink-3` 由 `#8b9295`（纸底 2.78:1、43 处小字不达标）压到 `#646c71`（4.70 / 5.04 / 5.35:1），打印态再压 `#5a6178` |
+> | 样式资产门禁 | `_asset()` 缺文件 / 空 CSS 硬失败；P0-A 增加「内联 CSS 内容过短」与「打印 Hero 文字覆盖必须存在」两条，堵住「空 `<style>` 让 P0-A 假通过」 |
+> | 发布链 | `sync.sh` 的 `gh repo clone` 默认走 SSH、本机已失效（`Permission denied publickey`）；改 HTTPS + `gh auth token`，并补发布包 assets 内容长度与打印覆盖校验，同步清单补 `.gitignore`。脚本只管 GitHub，Gitee / SkillHub 为独立步骤 |
+> | 可分享性 | `tests/test_cases.py` 曾硬依赖本地 `temp/` 里 5 个 `.bak`（而 `temp/` 被 `.gitignore` 排除），别人 clone 后跑测试必 `FileNotFoundError`；改为「发布包 0 个 / 本地 5 个」双态契约。`SKILL.md` frontmatter 规范为合法 SemVer `3.14.0`（SkillHub 拒收 `3.14`），正文「v3.14」标签不变 |
+> | 验收 | 回归 **291 通过 / 0 失败**（T24 打印 + T25 四态对比度）+ 28 项独立负向验证 + 六档视口综合探针 + 打印/屏幕四态全 DOM 对比度扫描（亮打印 0 / 暗打印 0 / 亮屏幕 0 / 暗屏幕 0，对照组能复现 15 处）+ 4 个内联 JS `node --check` 全绿 + 18 张逐屏截图自查 |
+>
+> **v3.13 变更（整体审查后续：上一轮 7 项待定优化全部落地）**
+> | 类别 | 修复/新增项 |
+> |---|---|
+> | 富文本净化 | 新增 `sanitize_rich()` 白名单净化器：params 文本里的裸 `<` / `&` / 未转义标签不再破坏表格或注入脚本，同时**保留**正文故意携带的 `<a class="ref">[S##]</a>` 出处上标；非 http(s) 链接降级为纯文本，自动补 `target=_blank` / `rel=noopener noreferrer`；渲染函数与 ctx 全量接入且幂等 |
+> | 出处门禁 | 新增 `source_refs_audit()`：正文 `[S##]` 引用与 `sources` 编号自动比对；引用未定义编号 / id 格式非法 / 无链接却未标「转引」→ 阻断；未被正文引用的出处合并为一条提示；`tier` 与 url 冲突给告警 |
+> | 分红率铁律 | `payout_basis_audit()`：无 `payout_note` / `payout_basis` 一律告警，`payout>0.35` 且无依据直接 P0-P 阻断；新增 `payout_basis` 字段 |
+> | 注入定位 | `apply_skin()` 改 `rfind('</head>')`；`validate_hydro()` 增 P0-A「三层 CSS 必须在 `<body>` 前」，杜绝注释里字面 `</head>` 造成样式错位 |
+> | 测算器 | 输入清空 / 越界不再静默变 0（曾导致 NaN / Infinity、SVG 坐标失效），改为回退原报告参数 + `.calc-warn` 可视提示；`calc()` 分母钳制；重置清除提示 |
+> | 校准器 | `calibrate_discount.py` 补 `validate_spec()`（≥6 年、年份/数值/零基期/重复年份/`general_sigma`）、`g<=-1` 回测除零防护、字符串年份兼容，并补齐文档承诺多年的 `--md` 输出 |
+> | 发布/文档 | 明确 `references/` 为本地方法论文档、不随公开仓库分发，SKILL.md 与 README 标注边界；`templates/` 下 5 个 `.bak` 归入 `temp/`（已被 `.gitignore` 排除）；新增 T22 共 46 项 → **220 通过 / 0 失败** |
+>
+> **v3.12 变更（整体审查：修假门禁、入参体检、前后端一致性、发布包）**
+> | 类别 | 修复/新增项 |
+> |---|---|
+> | 门禁 | `generate()` 未定义占位符过去被静默替换成破折号，且「替换后再 findall」恒为空 → 「剩余占位符：无」是假信号。现改为替换前比对 `ctx`，未知 `{{KEY}}` 直接阻断输出；T6/T18/T19/T20 的 4 条恒真断言由此获得真实兜底 |
+> | 健壮性 | `validate_params()` 补必需字段 / 数值类型 / 档位枚举 / market 白名单 / `rf_rate` 0~0.5 / `payout` 0~1。此前缺 `rf_rate`、`growth`、`company` 抛 `KeyError`，`fy1='12'` 抛 `TypeError`，`market='新三板'` 静默删光全部市场适配块，`payout=-0.3` 生成负分红，`payout=1.8` 生成分红超过三年净利 |
+> | 测算器 | ① `readParams()` 的 `discount` key 与 `i-disc` 不匹配，重置循环 `$('i-'+k)` 静默跳过折扣率 → 改 `disc`；② `38*1.1*1.25` 在 IEEE754 为 `52.25000000000001`，前端误报「触顶 52.25」而服务端 `round(...,4)` 不触顶 → 前端同步 round4；③ X 显示统一 `sp()` 带符号，评级文案对齐 `x_grade()`，点击「应用」后正文不再丢 `+` 号或缩短文案 |
+> | 文案 | `PAYOUT_NOTE` 缺省值从「A股默认0.30」改为「未附历史分红依据；书中 30% 仅为无数据兜底」，消除与 §二·五 铁律 5 的冲突，且不谎称已取历史中位 |
+> | 发布 | `sync.sh` 漏同步 `assets/`，远端 clone 缺 `hydro-skin.css` / `dynamic-adapt.css` / `brand.json` → `apply_skin()` 直接 `FileNotFoundError`；现同步并加必需文件检查 |
+> | 回归/文档 | 新增 T21 共 16 项 → **172 通过 / 0 失败**；Chrome 三档视口 1060/1440/1600 验证 X 符号、折扣率重置、封顶判据、页脚对齐差 0、console 0 错误；空目录自包含与侧栏显隐复验通过；README 补 v3.9~v3.12 |
+>
+> **v3.11 变更（出处汇总改卡片式，老板截图反馈「这块排版怎么优化」）**
+> | 类别 | 修复/新增项 |
+> |---|---|
+> | 版式 | 「数据来源汇总」从 7 列窄表改为**每条出处一张卡**：顶行编号 / 用途 / 分级 / 日期 / 核查链接，下方全宽列来源名称、本报告引用、口径。实测版心仅 878px，旧表 `min-width:880px` 顶满后「用途」64px、「本报告引用」109px，长文本被拆 6–9 行、首行高 195px、整表 2825px；卡片式后长文本 ≤3 行，出处区高度 < 2200px |
+> | 门禁 | `validate_hydro()` P0-H 改为检查 `class="src-list"` / `class="src-card"` / `class="src-card-fields"`，并**显式阻断旧 `class="src-tbl"`**，防止以后改回窄表 |
+> | 适配 | `dynamic-adapt.css` 卡片令牌映射 + 深色模式覆盖；≤768px 顶行元数据换行、字段改单列；打印 `break-inside:avoid` |
+> | 回归/文档 | T20 新增 2 项（卡片数、旧窄表阻断）→ 17 项；全套 **156 通过 / 0 失败**；验收脚本新增出处区高度 / 长文本行数 / 字段宽度探针；同步 §九·七、`references/hydro-design-spec.md` §9、`references/template-maintenance.md` §六 |
+>
+> **v3.10 变更（侧栏交互 + 表格排版 + 出处体系，老板截图反馈）**
+> | 类别 | 修复/新增项 |
+> |---|---|
+> | 交互 | 侧栏补齐 `<nav class="side-nav nav-hidden">` 初始态 + `IntersectionObserver` 观察 `#sec-overview` + `scroll/resize` 几何兜底（Hero 可见→隐藏，滚过→显示），对齐八维 / 七步；去掉 `visibility` 的 0.3s transition。v3.9 只搬了 `hydro-skin.css` 的 `.nav-hidden` 样式，没搬 DOM 与 JS |
+> | 排版 | `.chain-tbl th` 96px→172px + `white-space:nowrap`、`.prov-row` 首列 84px→132px + `white-space:nowrap`，修「技术颠覆风险 · 0.5 分」被拆三行；≤768px 降级 `word-break:keep-all` |
+> | 出处 | 新增 `params.sources` 六元组 → `render_sources()` → `#sec-sources`「数据来源汇总」表；侧栏 ⑨ / 目录 08 锚点；正文 `[S##]` 上标链接；研报 / 搜索内容不再裸写「需核实原文」 |
+> | 合规 | `validate_params()` 要求 sources 非空、字段齐全、编号唯一、url 必须 http(s)；`validate_hydro()` 新增 P0-G（侧栏）/ P0-H（出处 + 链接安全）；url 缺失显式标「转引 · 未取得原文链接」，禁止编造 |
+> | 门禁修正 | P0-E 从「零远程 src/href」收窄为「零远程**资源**」，放行 `<a href="https://...">` 出处链接；单文件自包含（CSS/JS/二维码内联）不变 |
+> | 回归/文档 | T20 15 项；154 项全绿；新增 §九·七、`references/hydro-design-spec.md` §9、`references/template-maintenance.md` §六 |
+>
+> **v3.9 变更（版式对齐八维行业分析 / 七步财报分析，老板要求）**
+> | 类别 | 修复/新增项 |
+> |---|---|
+> | 版式 | 默认皮肤从 navy/gold 深蓝金棕换成 **HYDRO PAPER v3.0**；新增 `assets/hydro-skin.css`（与八维同名字节一致）+ `assets/dynamic-adapt.css`（旧令牌重映射 + 动态估值组件覆盖）+ `assets/brand.json`（二维码 base64）；`skin='classic'` 仅作对比 |
+> | 结构 | `apply_skin()` 注入三层 CSS、Hero 等高线 SVG、brand 页脚、灯箱 JS；旧单行署名 footer 移除，新 footer 作为 `<body>` 直接子元素；`.wrap` 与 footer 共用 max-width/padding，三档视口 x 差为 0 |
+> | 合规 | 免责声明章节追加金融场景固定免责文案；`validate_hydro()` P0-A~P0-F 门禁（三层 CSS / 页脚层级 / 二维码 / 零远程 / 测算器 id / 免责）不通过即阻断 |
+> | 踩坑 | 模板 `header#sec-overview>*{position:relative}` 会把等高线 SVG 拉回文档流（实测 +264px 空白、tag 右移）→ 适配层用 `>svg.hero-art{position:absolute!important}` 压回；曲线 opacity 下调避免压住 Hero KPI 数值 |
+> | 文档/回归 | 新增 `references/hydro-design-spec.md`；`references/template-maintenance.md` 补换肤流程；`tests/test_cases.py` 新增 T18；117 项原回归全绿 |
 >
 > **v3.8 变更（判定锚点纠偏：护城河改同业相对分位、周期波动改可预测性，老板拍板）**
 > | 类别 | 修复/新增项 |
@@ -507,7 +631,7 @@ A股：eastmoney_individual_info(code) → f84 总股本(万股)/10000 = 亿股
 > **v3.5 变更（折扣实证校准 + 档位判断链 + 测算器全量联动，老板拍板）**
 > | 类别 | 修复/新增项 |
 > |---|---|
-> | 方法论 | 券商打折系数从书中 0.9 一刀切升级为**公司特定实证校准**：新增 `references/consensus-discount-calibration.md`（三重功能辨析/免费代理指标/事前锁定公式/防许愿池规则）+ `scripts/calibrate_discount.py`；公式 `discount=clip(round((1.10−(0.6σ₁+0.4σ₂))×20)/20, 0.90, 1.00)`，一般 A 股锚 σ=0.27 复现书中 0.9，与书连续 |
+> | 方法论 | 券商打折系数从本 Skill 默认 0.9 一刀切升级为**公司特定实证校准**：新增 `references/consensus-discount-calibration.md`（三重功能辨析/免费代理指标/事前锁定公式/防许愿池规则）+ `scripts/calibrate_discount.py`；公式 `discount=clip(round((1.10−(0.6σ₁+0.4σ₂))×20)/20, 0.90, 1.00)`，一般 A 股锚 σ=0.27 复现本 Skill 默认 0.9，与既有刻度连续 |
 > | 方法论 | 增速自洽口径修正：增长档位判定必须用**打折前**预测 vs 实际（原长电报告误用已打折 FY3 有效盈利对比，把折扣保守性二次计入档位，得出假负增长） |
 > | 透明度 | Step 2/3/4 新增「🔗 判断链」组件（判据/事实与数据/临界分析/对估值的影响），参数 `growth_chain`/`comp_chain`/`moat_chain` 驱动；缺失时告警不阻断；测试 T16 锁定 |
 > | 修复 | 测算器「应用」历史缺口：④ 结论段 prose/评级徽章/三档情景表/柱状图几何此前 stale，已全部接入联动（45+ 联动点）；补标尺超量程提示；修基准档「确定性 undefined」 |
@@ -565,5 +689,7 @@ A股：eastmoney_individual_info(code) → f84 总股本(万股)/10000 = 亿股
 > | 语义 | 评级徽章按 X 动态配色（低估绿/合理蓝/高估红，原永远琥珀）；「≤52.25 ✅/❌」改二选一；`OVER_CAP` 警告块接入模板（原死代码）；交叉验证项按 ✅/⚠️/❌ 自动上色 |
 > | 健壮性 | 三档情景改「升降一档」，数学保证不倒挂；柱图 `Vmax` 取四值最大，任何组合不溢出画布；`validate` 增加单调性告警 |
 > | 体验 | SVG 27 处硬编码色值全部走 CSS 变量（`svg .f-red{fill:var(--red)}` 等）；响应式补至 1024/768/640 三档断点 |
-> **参考文件**：`references/valuation-formula.md`（公式与系数） | `references/rating-anchors.md`（评级标准） | `references/output-template.md`（输出模板） | `references/template-maintenance.md`（模板升级自检清单 + 踩坑教训 + 设计系统约定） | `references/consensus-discount-calibration.md`（折扣实证校准框架） | `templates/dynamic_valuation_report_template.html`（HTML模板）
+> **文档边界（v3.13）**：`references/` 是**本地方法论文档**（含书中案例与笔记），`.gitignore` 默认排除、`sync.sh` 不同步，公开仓库 clone 不含该目录。上表涉及的门禁判据、出处契约、侧栏交互、换肤红线已全部内联在本 SKILL.md §九·五~§九·七 与 README；远端只需 `SKILL.md` / `README.md` / `scripts/` / `templates/` / `assets/` / `tests/` 即可完整运行，**不得依赖 `references/*.md` 才能执行**。若要把方法论文档一并公开，须先确认书中案例版权再自行调整 `.gitignore`。
+>
+> **参考文件**：`references/valuation-formula.md`（公式与系数） | `references/rating-anchors.md`（评级标准） | `references/output-template.md`（输出模板） | `references/template-maintenance.md`（模板升级自检清单 + 踩坑教训 + v3.10 出处契约） | `references/hydro-design-spec.md`（HYDRO PAPER v3.0 适配规格与门禁 + 侧栏/出处验收） | `references/consensus-discount-calibration.md`（折扣实证校准框架） | `templates/dynamic_valuation_report_template.html`（HTML模板） | `assets/hydro-skin.css` / `assets/dynamic-adapt.css` / `assets/brand.json`（皮肤资源） | `scripts/generate_report.py::render_sources()`（出处六元组渲染）
 > **调用方式**：`python3 scripts/generate_report.py <参数.json>`（参数含标的/行情/评级/交叉验证结论，详见工作区 `宁德时代_params.json` 示例）；输出单文件 HTML 到 `output` 字段指定路径。

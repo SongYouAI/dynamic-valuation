@@ -211,6 +211,8 @@
     border-radius:8px; border-left:3px solid transparent; transition:all .2s; text-decoration:none; line-height:1.45; }
   .side-nav a.active{ background:var(--blue-deep); color:#fff; border-left-color:var(--amber); }
   .side-nav a:hover{ color:var(--blue-deep); }
+  /* v3.10：首屏 Hero 可见时隐藏侧栏，滚过 Hero 再显示（对齐八维 / 七步） */
+  .side-nav.nav-hidden{opacity:0;pointer-events:none;transform:translateX(-12px);visibility:hidden;}
   /* 桌面端（≥1200px）主内容避让侧栏：wrap 左移，不再居中 */
   @media (min-width:1200px){
     .wrap{ margin-left:248px; margin-right:auto; }
@@ -293,13 +295,14 @@
   .chain{ margin-top:12px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--surface); }
   .chain-head{ padding:7px 12px; background:var(--blue-soft); color:var(--blue-deep); font-size:12px; font-weight:800; letter-spacing:.5px; }
   .chain-tbl{ width:100%; border-collapse:collapse; }
-  .chain-tbl th{ width:96px; text-align:left; vertical-align:top; padding:8px 10px; font-size:12px; color:var(--gray); border-bottom:1px solid var(--line); border-right:1px solid var(--line); background:var(--off-white); font-weight:700; }
+  .chain-tbl th{ width:172px; min-width:172px; white-space:nowrap; text-align:left; vertical-align:top; padding:8px 10px; font-size:12px; color:var(--gray); border-bottom:1px solid var(--line); border-right:1px solid var(--line); background:var(--off-white); font-weight:700; }
   .chain-tbl td{ padding:8px 12px; font-size:12.5px; line-height:1.75; color:var(--ink-2); border-bottom:1px solid var(--line); }
   .chain-tbl tr:last-child th,.chain-tbl tr:last-child td{ border-bottom:none; }
   [data-theme="dark"] .chain-head{ color:var(--blue); }
   @media (max-width:768px){
     .calc-grid{ grid-template-columns:repeat(2,1fr); }
     .calc-out .row{ grid-template-columns:repeat(2,1fr); }
+    .chain-tbl th{width:120px;min-width:120px;white-space:normal;word-break:keep-all;}
   }
 
   /* ============ ① 关键数字金色荧光笔（对齐七步财报招牌细节） ============ */
@@ -369,10 +372,11 @@
   .prov-tbl tr.adopted td{background:rgba(200,148,59,.13);font-weight:800;color:#1a1a2e;}
   .prov-tbl .n{display:block;font-size:10px;font-weight:500;color:#8a94a6;letter-spacing:.2px;margin-top:1px;}
   /* 取数口径行（交叉复核 / 无风险利率 / 截面说明） */
-  .prov-row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:3px 16px;padding:8px 0;
+  .prov-row{display:grid;grid-template-columns:176px minmax(0,1fr);gap:3px 16px;padding:8px 0;
     font-size:12.5px;line-height:1.75;}
   .prov-row+.prov-row{border-top:1px dashed rgba(99,91,255,.15);}
-  .prov-k{font-size:11px;font-weight:800;color:#6b5fa8;letter-spacing:.5px;padding-top:2px;}
+  .prov-k{font-size:11px;font-weight:800;color:#6b5fa8;letter-spacing:.5px;padding-top:2px;
+    min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.6;}
   .prov-v{color:#4b5563;min-width:0;}
   .prov-foot{margin-top:8px;font-size:11px;color:#7a72a8;letter-spacing:.2px;}
   /* 分段文本：长句按「；」拆行，禁止糊成一坨 */
@@ -463,7 +467,7 @@
     --ink:#e6ebf2; --ink-2:#c0cadb;
     --gray:#9aa7b8; --gray-2:#6b7a94;
     --line:#243042; --axis:#33415a;
-    --blue:#5b9bf0; --blue-soft:#13203a;
+    --blue:#5b9bf0; --blue-deep:#5b9bf0; --blue-soft:#13203a;
     --gold:#d4a853; --gold-light:#e0c17d; --gold-bg:#1a160c;
     --green:#3fae6a; --green-bg:#13251a;
     --amber:#d9ad5c; --amber-bg:#1d1606;
@@ -558,6 +562,47 @@
     .kv>div:nth-child(even){text-align:left;padding-top:3px;}
   }
 
+  /* ============ v3.11 数据来源汇总（卡片式 · 六元组 · 长文本全宽） ============ */
+  .sec-en{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:1px;margin-left:8px;}
+  .src-note{font-size:12px;line-height:1.75;color:var(--ink-2);margin:0 0 12px;}
+  .src-wrap{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden;}
+  .src-list{display:block;}
+  .src-card{padding:14px 18px;border-bottom:1px solid var(--line);break-inside:avoid;}
+  .src-card:last-child{border-bottom:none;}
+  .src-card-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px;}
+  .src-id{font-family:var(--font-mono,monospace);font-size:12px;font-weight:800;
+    color:var(--blue-deep);letter-spacing:.5px;white-space:nowrap;}
+  .src-card-use{font-size:12px;font-weight:800;color:var(--ink);white-space:nowrap;}
+  .src-card-meta{margin-left:auto;display:flex;align-items:center;gap:12px;white-space:nowrap;}
+  .src-card-date{font-family:var(--font-mono,monospace);font-size:10px;color:var(--gray);}
+  .src-link{white-space:nowrap;}
+  .src-card-name{margin:0 0 6px;font-size:12px;font-weight:600;line-height:1.7;color:var(--ink);}
+  .src-card-fields{margin:0;display:grid;gap:3px 12px;}
+  .src-card-row{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:baseline;}
+  .src-card-row dt{font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--gray);white-space:nowrap;}
+  .src-card-row dd{margin:0;font-size:12px;line-height:1.7;color:var(--ink-2);}
+  .src-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:800;
+    border:1px solid var(--line);color:var(--gray);white-space:nowrap;}
+  .src-tag.a{color:#1b6b3a;border-color:#1b6b3a;}
+  .src-tag.b{color:var(--blue-deep);border-color:var(--blue-deep);}
+  .src-tag.c{color:#9a6b12;border-color:#9a6b12;}
+  .src-tag.x{color:var(--gray);}
+  a.ref{display:inline-block;font-size:10px;line-height:1;vertical-align:super;margin:0 1px;
+    color:var(--blue-deep);text-decoration:none;opacity:.6;}
+  a.ref:hover{opacity:1;}
+  a.src-a{color:var(--blue-deep);text-decoration:none;font-weight:700;border-bottom:1px solid var(--blue-deep);}
+  a.src-a:hover{opacity:.75;}
+  @media(max-width:768px){
+    .src-card{padding:12px 14px;}
+    .src-card-meta{margin-left:0;width:100%;gap:8px;}
+    .src-card-row{grid-template-columns:1fr;gap:2px;}
+  }
+  @media print{.src-wrap{overflow:visible;}.src-card{padding:8px 10px;}.src-card-row dd,.src-card-name{font-size:10px;}}
+
+  /* v3.13：测算器输入被清空 / 越界时的回退提示 */
+  .calc-warn{margin:10px 0 0;padding:9px 12px;border-left:3px solid var(--amber,#9a6b1f);background:var(--amber-bg,#f6f1e7);font-size:12.5px;line-height:1.65;color:var(--ink,#1a1a2e);}
+  .calc-warn[hidden]{display:none;}
+
 </style>
 <script>try{var t=localStorage.getItem('dv-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
 </head>
@@ -566,8 +611,8 @@
 <div class="top-progress" id="topProgress"></div>
 <div class="wrap">
 
-  <nav class="side-nav" aria-label="报告章节导航">
-    <div class="sn-title">📑 报告导航</div>
+  <nav class="side-nav nav-hidden" aria-label="报告章节导航">
+    <div class="sn-title">报告导航 / INDEX</div>
     <a href="#sec-overview">① 报告概览</a>
     <a href="#sec-intro">② 通俗导言</a>
     <a href="#sec-steps">③ 分步计算过程</a>
@@ -576,11 +621,12 @@
     <a href="#sec-market">⑥ 各市场适配</a>
     <a href="#sec-limit">⑦ 局限与风险</a>
     <a href="#sec-disclaim">⑧ 免责声明</a>
+    <a href="#sec-sources">⑨ 数据来源汇总</a>
   </nav>
 
   <!-- ============ ① 报告头 ============ -->
   <header id="sec-overview">
-    <span class="tag">📊 动态估值法 · 梁宇峰《估值的力量》</span>
+    <span class="tag">动态估值法 · 梁宇峰《估值的力量》</span>
     <h1>{{COMPANY_NAME}} · 动态估值报告</h1>
     <div class="sub">证券代码 {{COMPANY_CODE}} ｜ 市场 {{MARKET}} ｜ 计价 {{CURRENCY}} ｜ 报告日期 {{REPORT_DATE}}</div>
     <div class="hero-meta">
@@ -596,52 +642,21 @@
     </div>
   </header>
 
-  <!-- ============ 报告导航 TOC（移动端可见） ============ -->
-  <nav class="toc-card" aria-label="章节目录">
-    <div class="toc-title">📑 报告目录</div>
-    <div class="toc-grid">
-      <a class="toc-item" href="#sec-intro"><span class="toc-num">01</span><span><span class="toc-t">为什么用动态估值法</span><span class="toc-d">通俗导言</span></span></a>
-      <a class="toc-item" href="#sec-steps"><span class="toc-num">02</span><span><span class="toc-t">分步计算过程</span><span class="toc-d">Step 1–8 忠于书中公式</span></span></a>
-      <a class="toc-item" href="#sec-conclusion"><span class="toc-num">03</span><span><span class="toc-t">估值结论与三档情景</span><span class="toc-d">标尺 + 悲观/基准/乐观</span></span></a>
-      <a class="toc-item" href="#sec-cross"><span class="toc-num">04</span><span><span class="toc-t">强制交叉验证</span><span class="toc-d">7 项校验</span></span></a>
-      <a class="toc-item" href="#sec-market"><span class="toc-num">05</span><span><span class="toc-t">各市场适配</span><span class="toc-d">A / 港 / 美</span></span></a>
-      <a class="toc-item" href="#sec-limit"><span class="toc-num">06</span><span><span class="toc-t">局限与风险</span><span class="toc-d">书中明示</span></span></a>
-      <a class="toc-item" href="#sec-disclaim"><span class="toc-num">07</span><span><span class="toc-t">免责声明</span><span class="toc-d">仅供参考</span></span></a>
-    </div>
-  </nav>
-
-  <!-- ============ 数据底座卡（数据来源 + 可信度档位） ============ -->
-  <div class="meta-card">
-    <div class="meta-card-head">
-      <div class="meta-card-icon">📚</div>
-      <div>
-        <div class="meta-card-eyebrow">数据底座 · DATA PROVENANCE</div>
-        <div class="meta-card-title">{{DATA_TIER_DESC}}</div>
-      </div>
-      <span class="tier-badge {{DATA_TIER_CLASS}}">{{DATA_TIER_LABEL}}</span>
-    </div>
-    <div class="meta-card-body">
-      {{CONSENSUS_TBL}}
-      {{PROV_ROWS}}
-      <div class="prov-foot">{{PROV_FOOT}}</div>
-    </div>
-  </div>
-
   <!-- ============ 🧮 手动测算器（报告内置交互：改参数即时重算，点应用刷新正文） ============ -->
   <div class="calc-panel collapsed" id="calcPanel">
     <div class="cp-head" id="calcHead">
-      <b><span class="cp-toggle">▾</span>🧮 手动测算器 · 改数即重算</b>
+      <b><span class="cp-toggle">▾</span>手动测算器 · 改数即重算</b>
       <span class="hint">输入/拖动参数，点击「应用」刷新报告正文</span>
     </div>
     <div class="cp-body">
       <div class="calc-grid">
-        <div class="fld"><label>FY1 净利(亿)</label><input id="i-fy1" type="number" step="0.01" value="{{FY1_E}}"></div>
-        <div class="fld"><label>FY2 净利(亿)</label><input id="i-fy2" type="number" step="0.01" value="{{FY2_E}}"></div>
-        <div class="fld"><label>FY3 净利(亿)</label><input id="i-fy3" type="number" step="0.01" value="{{FY3_E}}"></div>
+        <div class="fld"><label>FY1 净利(亿)</label><input id="i-fy1" type="number" step="0.000001" value="{{FY1_RAW}}"></div>
+        <div class="fld"><label>FY2 净利(亿)</label><input id="i-fy2" type="number" step="0.000001" value="{{FY2_RAW}}"></div>
+        <div class="fld"><label>FY3 净利(亿)</label><input id="i-fy3" type="number" step="0.000001" value="{{FY3_RAW}}"></div>
         <div class="fld"><label>一致预期折扣</label><input id="i-disc" type="number" step="0.01" value="{{CONSENSUS_DISCOUNT}}" min="0" max="1.5"></div>
-        <div class="fld"><label>分红支付率</label><input id="i-payout" type="number" step="0.01" value="{{PAYOUT}}" min="0" max="1"></div>
-        <div class="fld"><label>总股本(亿股)</label><input id="i-shares" type="number" step="0.01" value="{{TOTAL_SHARES}}"></div>
-        <div class="fld"><label>当前股价(元)</label><input id="i-price" type="number" step="0.01" value="{{CURRENT_PRICE}}"></div>
+        <div class="fld"><label>分红支付率</label><input id="i-payout" type="number" step="0.000001" value="{{PAYOUT_RAW}}" min="0" max="1"></div>
+        <div class="fld"><label>总股本(亿股)</label><input id="i-shares" type="number" step="0.00000001" value="{{SHARES_RAW}}"></div>
+        <div class="fld"><label>当前股价(元)</label><input id="i-price" type="number" step="0.01" value="{{PRICE_RAW}}"></div>
         <div class="fld"><label>10Y国债(小数)</label><input id="i-rf" type="number" step="0.0001" value="{{RF_RATE_DEC}}"></div>
         <div class="fld"><label>技术颠覆(0-1)</label><input id="i-tech" type="number" step="0.1" value="{{TECH_SCORE}}" min="0" max="1"></div>
         <div class="fld"><label>周期波动(0-1)</label><input id="i-cycle" type="number" step="0.1" value="{{CYCLE_SCORE}}" min="0" max="1"></div>
@@ -678,6 +693,38 @@
   </div>
 
 
+  <!-- ============ 报告导航 TOC（移动端可见） ============ -->
+  <nav class="toc-card" aria-label="章节目录">
+    <div class="toc-title">报告目录 / CONTENTS</div>
+    <div class="toc-grid">
+      <a class="toc-item" href="#sec-intro"><span class="toc-num">01</span><span><span class="toc-t">为什么用动态估值法</span><span class="toc-d">通俗导言</span></span></a>
+      <a class="toc-item" href="#sec-steps"><span class="toc-num">02</span><span><span class="toc-t">分步计算过程</span><span class="toc-d">Step 1–8 忠于书中公式</span></span></a>
+      <a class="toc-item" href="#sec-conclusion"><span class="toc-num">03</span><span><span class="toc-t">估值结论与三档情景</span><span class="toc-d">标尺 + 悲观/基准/乐观</span></span></a>
+      <a class="toc-item" href="#sec-cross"><span class="toc-num">04</span><span><span class="toc-t">强制交叉验证</span><span class="toc-d">7 项校验</span></span></a>
+      <a class="toc-item" href="#sec-market"><span class="toc-num">05</span><span><span class="toc-t">各市场适配</span><span class="toc-d">A / 港 / 美</span></span></a>
+      <a class="toc-item" href="#sec-limit"><span class="toc-num">06</span><span><span class="toc-t">局限与风险</span><span class="toc-d">书中明示</span></span></a>
+      <a class="toc-item" href="#sec-disclaim"><span class="toc-num">07</span><span><span class="toc-t">免责声明</span><span class="toc-d">仅供参考</span></span></a>
+      <a class="toc-item" href="#sec-sources"><span class="toc-num">08</span><span><span class="toc-t">数据来源汇总</span><span class="toc-d">可核查链接</span></span></a>
+    </div>
+  </nav>
+
+  <!-- ============ 数据底座卡（数据来源 + 可信度档位） ============ -->
+  <div class="meta-card">
+    <div class="meta-card-head">
+      <div class="meta-card-icon">📚</div>
+      <div>
+        <div class="meta-card-eyebrow">数据底座 · DATA PROVENANCE</div>
+        <div class="meta-card-title">{{DATA_TIER_DESC}}</div>
+      </div>
+      <span class="tier-badge {{DATA_TIER_CLASS}}">{{DATA_TIER_LABEL}}</span>
+    </div>
+    <div class="meta-card-body">
+      {{CONSENSUS_TBL}}
+      {{PROV_ROWS}}
+      <div class="prov-foot">{{PROV_FOOT}}</div>
+    </div>
+  </div>
+
   <!-- ============ ② 通俗导言 ============ -->
   <section id="sec-intro">
     <h2>一、为什么用动态估值法（通俗导言）</h2>
@@ -693,7 +740,7 @@
 
   <!-- ============ ②-附：系数速查 + 普通人取数（折叠） ============ -->
   <details class="coef">
-    <summary>📊 附：系数速查表（已钉死）& 普通人如何取数（点开）</summary>
+    <summary>附：系数速查表（已钉死）& 普通人如何取数（点开）</summary>
     <h3>一、系数表（来源：老板笔记《动态估值法的详细步骤》+ 书内 A公司/恩华案例校验）</h3>
     <table>
       <thead><tr><th>增长潜力（第4～10年）</th><th>基准倍数</th><th>增长空间 / 复合增速</th></tr></thead>
@@ -842,7 +889,7 @@
       <div class="exec-summary-head">
         <div>
           <div class="exec-summary-eyebrow">EXECUTIVE SUMMARY</div>
-          <div class="ct">🎯 估值结论速览</div>
+          <div class="ct">估值结论速览</div>
         </div>
         <div class="exec-summary-badges">
           <div class="rating-badge {{X_RATING_CLASS}}" id="r-badge">{{X_GRADE}}</div>
@@ -889,7 +936,7 @@
 
     <!-- 图2 三档情景股价对比 -->
     <div class="viz">
-      <div class="viz-title">📊 三档情景合理股价对比（红虚线 = 当前价 <span id="b-cur-price">{{CURRENT_PRICE}}</span> 元）</div>
+      <div class="viz-title">三档情景合理股价对比（红虚线 = 当前价 <span id="b-cur-price">{{CURRENT_PRICE}}</span> 元）</div>
       <svg viewBox="0 0 780 260" width="100%" role="img" aria-label="三档情景股价对比">
         <line id="b-cur-line" x1="50" y1="{{BAR_CUR_Y}}" x2="740" y2="{{BAR_CUR_Y}}" class="k-red" stroke-width="2" stroke-dasharray="7,4"/>
         <text id="b-cur-label" x="46" y="{{BAR_CUR_Y}}" text-anchor="end" font-size="11" class="f-red" dominant-baseline="middle">当前 {{CURRENT_PRICE}}</text>
@@ -1015,6 +1062,14 @@
       动态估值追求"模糊正确"而非精确，所得合理价值/股价为<b>区间参考</b>而非定点预测。
       <b>本报告仅供参考，不构成任何投资建议，不可据此单独决策。</b>投资有风险，决策须结合自身研究并自担风险。
     </div>
+    <p class="disclaim"><strong>免责声明</strong>：以上内容基于公开数据和量化分析，仅供参考，不构成投资建议。市场有风险，投资需谨慎。任何投资决策应结合个人风险承受能力、资金状况和投资目标独立判断，必要时咨询持牌专业机构。过往表现不预示未来收益。</p>
+  </section>
+
+  <!-- ============ ⑨ 数据来源汇总（可核查链接 · 六元组） ============ -->
+  <section id="sec-sources">
+    <h2>附：数据来源汇总<span class="sec-en">/ SOURCES</span></h2>
+    <p class="src-note">每条出处一张卡：顶行是编号 / 用途 / 分级 / 抓取日期 / 可核查链接，下方全宽列来源名称（页面标题 · 发布日期）、本报告引用的数值或内容、口径。标注「转引 · 未取得原文链接」的条目表示本轮只取得二手转述，不冒充一手核实。所有链接为外部核查入口，不影响本报告的离线自包含。</p>
+    <div class="src-wrap">{{SOURCES_TBL}}</div>
   </section>
 
   <footer>动态估值报告模板 · 依据梁宇峰《估值的力量》第三章方法论 + 老板笔记《动态估值法的详细步骤》精确系数构建 · 系数已钉死（老板笔记精确值 + 书内 A公司/恩华案例校验为准绳）</footer>
@@ -1048,10 +1103,36 @@
   var items = document.querySelectorAll('.step, .viz');
   if(items.length && 'IntersectionObserver' in window){
     items.forEach(function(el){ el.classList.add('reveal-init'); });
+    var fired=false;
     var io = new IntersectionObserver(function(es){
+      fired=true;
       es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in-view'); io.unobserve(e.target); } });
     }, { threshold: 0.08 });
     items.forEach(function(el){ io.observe(el); });
+    // v3.14：headless / 部分 WebView 不派发 IO 回调，会让所有 .step/.viz 永远 opacity:0。
+    // 只有「一次回调都没来过」才兜底，正常浏览器的渐入效果不受影响。
+    setTimeout(function(){ if(!fired) items.forEach(function(el){ el.classList.add('in-view'); }); },1200);
+  }
+  // ===== v3.10 侧栏初始隐藏：Hero 可见时隐藏，滚过 Hero 后显示（对齐八维 / 七步） =====
+  var nav = document.querySelector('.side-nav');
+  var heroEl = document.getElementById('sec-overview');
+  if(nav && heroEl){
+    // scroll / resize 几何兜底：部分环境（含 headless）不派发 IO 回调，
+    // 用 Hero 位置判据保证行为一致；与 IO 判据同向，不会互相打架。
+    var syncNav = function(){
+      var r = heroEl.getBoundingClientRect();
+      nav.classList.toggle('nav-hidden', r.bottom > 120 && r.top < window.innerHeight * 0.5);
+    };
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(es){
+        es.forEach(function(e){ nav.classList.toggle('nav-hidden', e.isIntersecting); });
+      }, {threshold:0.12}).observe(heroEl);
+    }
+    window.addEventListener('scroll', syncNav, {passive:true});
+    window.addEventListener('resize', syncNav, {passive:true});
+    syncNav();
+  }else if(nav){
+    nav.classList.remove('nav-hidden');
   }
   // ===== 侧栏导航高亮 =====
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.side-nav a'));
@@ -1078,24 +1159,29 @@
     const BASE_ORDER=['小幅负增长','零增长','低','中低','中等','中高','高','超高'];
     const COMP_ORDER=['非常差','较差','较好','非常好'];
     const MOAT_ORDER=['没有','一定','较深','极深'];
-    const GRADE=[[-0.50,'严重低估','low'],[-0.33,'低估','low'],[-0.20,'偏低估','low'],[0.25,'合理估值','neutral'],[0.50,'偏高估','high'],[1.00,'高估','high'],[Infinity,'严重高估','high']];
+    const GRADE=[[-0.50,'严重低估','low'],[-0.33,'低估','low'],[-0.20,'偏低估','low'],[0.25,'合理估值（区间 -20%~25%）','neutral'],[0.50,'偏高估','high'],[1.00,'高估','high'],[Infinity,'严重高估','high']];
     const $=id=>document.getElementById(id);
-    const num=id=>parseFloat($(id).value)||0;
-    const txt=id=>$(id).value;
+    // v3.13：清空输入框不再静默变 0（0 会让 rprice / X / upside 变 NaN，SVG 坐标失效）。
+    const num=id=>{const el=$(id),v=parseFloat(el?el.value:'');return Number.isFinite(v)?v:NaN;};
+    const txt=id=>$(id)?$(id).value:'';
     function shift(order,tier,step){let i=order.indexOf(tier);return order[Math.max(0,Math.min(order.length-1,i+step))];}
     function calc(p){
-      const fy3eff=p.fy3*p.discount;
+      const fy3eff=p.fy3*p.disc;
       const base=BASE[p.growth],c=COMP[p.comp],m=MOAT[p.moat];
-      const raw=base*c*m,over=raw>MULT_CAP,mult=over?MULT_CAP:raw;
+      // 与 Python round(base*c*m, 4) 对齐：38*1.1*1.25 在 IEEE754 下为 52.25000000000001，
+      // 不 round4 会误报「触顶 52.25」，与服务端 CAP_FLAG 相反。
+      const raw=Math.round(base*c*m*10000)/10000,over=raw>MULT_CAP,mult=over?MULT_CAP:raw;
       const cert=(p.cert!==undefined)?p.cert:(p.tech+p.cycle+p.policy);
-      const disc=p.rf+(5-cert)*0.04;
+      // v3.13 分母钳制：即使绕过 sanitize 直接调用 calc，也不产生 NaN / Infinity。
+      const disc=Math.max(-0.99,Math.min(2,p.rf+(5-cert)*0.04));
       const fv3=fy3eff*mult;
       const div=(p.fy1+p.fy2+p.fy3)*p.payout;
-      const value=fv3/Math.pow(1+disc,3)+div;
-      const rprice=value/p.shares;
+      const denom=Math.pow(1+disc,3);
+      const value=fv3/(denom>0?denom:1e-9)+div;
+      const rprice=value/Math.max(1e-9,p.shares);
       const mktcap=p.price*p.shares;
-      const X=mktcap/value-1;
-      const upside=rprice/p.price-1;
+      const X=value>0?mktcap/value-1:0;
+      const upside=p.price>0?rprice/p.price-1:0;
       return {fy3eff,base,c,m,raw,over,mult,disc,fv3,div,value,rprice,mktcap,X,upside,cert};
     }
     function tier(p,kind){
@@ -1112,11 +1198,47 @@
     const f2=x=>x.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
     const p1=x=>(x*100).toFixed(1)+'%';
     const sp=x=>(x>=0?'+':'')+(x*100).toFixed(1)+'%';
-    function readParams(){return {fy1:num('i-fy1'),fy2:num('i-fy2'),fy3:num('i-fy3'),discount:num('i-disc'),payout:num('i-payout'),shares:num('i-shares'),price:num('i-price'),rf:num('i-rf'),tech:num('i-tech'),cycle:num('i-cycle'),policy:num('i-policy'),growth:txt('i-growth'),comp:txt('i-comp'),moat:txt('i-moat')};}
+    // key 必须与 input id 后缀一致：重置循环用 $('i-'+k)，discount 曾导致 i-discount 找不到，折扣率不恢复。
+    function readParams(){return {fy1:num('i-fy1'),fy2:num('i-fy2'),fy3:num('i-fy3'),disc:num('i-disc'),payout:num('i-payout'),shares:num('i-shares'),price:num('i-price'),rf:num('i-rf'),tech:num('i-tech'),cycle:num('i-cycle'),policy:num('i-policy'),growth:txt('i-growth'),comp:txt('i-comp'),moat:txt('i-moat')};}
+    // ===== v3.13 输入体检：回退到原报告参数 + 可视提示，不静默算错 =====
+    const ORIG=readParams();
+    // v3.14：留一份未修补副本供「重置」回写，避免把 FALLBACK 常量当成原报告参数。
+    const ORIG_RAW=Object.assign({},ORIG);
+    const FALLBACK={fy1:1,fy2:1,fy3:1,disc:0.9,payout:0.3,shares:1,price:1,rf:0.02,tech:0.5,cycle:0.5,policy:1};
+    for(const k in FALLBACK){ if(!Number.isFinite(ORIG[k])) ORIG[k]=FALLBACK[k]; }
+    let calcWarnEl=null;
+    function showCalcWarn(keys){
+      if(keys.length&&!calcWarnEl){
+        calcWarnEl=document.createElement('p');calcWarnEl.className='calc-warn';
+        const panel=$('calcPanel');if(panel)panel.appendChild(calcWarnEl);
+      }
+      if(calcWarnEl){
+        calcWarnEl.textContent=keys.length
+          ? '⚠️ 输入为空或超出范围（'+keys.join('、')+'），已按原报告参数计算；请补全后再点「应用」。'
+          : '';
+        calcWarnEl.hidden=keys.length===0;
+      }
+    }
+    function sanitize(p){
+      const bad=[];
+      for(const k of ['fy1','fy2','fy3','shares','price']){
+        if(!Number.isFinite(p[k])||p[k]<=0){bad.push(k);p[k]=ORIG[k];}
+      }
+      const ranges={disc:[0,1.5],payout:[0,1],rf:[0,0.5],tech:[0,1],cycle:[0,1],policy:[0,2]};
+      for(const k in ranges){
+        if(!Number.isFinite(p[k])||p[k]<ranges[k][0]||p[k]>ranges[k][1]){bad.push(k);p[k]=ORIG[k];}
+      }
+      const tables=[['growth',BASE],['comp',COMP],['moat',MOAT]];
+      for(const pair of tables){const k=pair[0],tbl=pair[1];
+        if(!(p[k] in tbl)){bad.push(k);p[k]=ORIG[k];}
+      }
+      showCalcWarn(bad);
+      return p;
+    }
     function compute(){
-      const p=readParams();const r=calc(p);const [gname,gcls]=grade(r.X);
+      const p=sanitize(readParams());const r=calc(p);const [gname,gcls]=grade(r.X);
       $('o-value').textContent=f2(r.value);$('o-rprice').textContent=r.rprice.toFixed(1);
-      $('o-x').textContent=p1(r.X);$('o-grade').textContent=gname;
+      $('o-x').textContent=sp(r.X);$('o-grade').textContent=gname;
       const pt=tier(p,'pes'),ot=tier(p,'opt');
       const pes=calc(pt),opt=calc(ot);
       $('o-pes').textContent=pes.rprice.toFixed(1);$('o-pes-up').textContent=' ('+sp(pes.upside)+')';
@@ -1140,10 +1262,12 @@
       $('v-value').textContent=f2(r.value)+' 亿';
       $('v-rprice').textContent=r.rprice.toFixed(1)+' 元';
       $('v-mktcap').textContent=f2(r.mktcap)+' 亿';
-      $('v-x').textContent=p1(r.X);
-      $('v-grade').textContent=gname;$('v-grade').className='pill '+gcls;
+      $('v-x').textContent=sp(r.X);
+      // v3.14：v-grade 是 div 容器，改它的 className 会把块级容器变成内联 pill。
+      const vg=$('v-grade').firstElementChild||$('v-grade');
+      vg.textContent=gname;vg.className='pill '+gcls;
       $('v-upside').textContent=sp(r.upside);
-      $('v-ruler-x').textContent='当前 X='+p1(r.X)+((r.X*100<-60||r.X*100>120)?'（超出量程，指针贴边）':'');
+      $('v-ruler-x').textContent='当前 X='+sp(r.X)+((r.X*100<-60||r.X*100>120)?'（超出量程，指针贴边）':'');
       const cx=rulerX(r.X*100);
       const ln=$('v-ruler-line');ln.setAttribute('x1',cx);ln.setAttribute('x2',cx);
       const pg=$('v-ruler-poly');pg.setAttribute('points',cx+',26 '+(cx-6)+',14 '+(cx+6)+',14');
@@ -1153,13 +1277,13 @@
       // ===== 执行摘要 + Hero KPI 联动（v3.3 新增） =====
       $('e-value').textContent=f2(r.value)+' 亿';
       $('e-rprice').textContent=r.rprice.toFixed(1);
-      $('e-x').textContent=p1(r.X);
+      $('e-x').textContent=sp(r.X);
       $('e-grade').textContent=gname;
       $('e-upside').textContent=sp(r.upside);
       $('h-price').textContent=p.price.toFixed(2);
       $('h-rprice').textContent=r.rprice.toFixed(1);
       $('h-value').textContent=f2(r.value);
-      $('h-x').textContent=p1(r.X);
+      $('h-x').textContent=sp(r.X);
       $('h-upside').textContent=sp(r.upside);
       // ===== v3.5 全量联动：执行摘要 prose / 徽章 / 情景表 / 柱状图几何 =====
       $('e-mktcap').textContent=f2(r.mktcap)+' 亿';
@@ -1167,7 +1291,7 @@
       $('c-mktcap').textContent=f2(r.mktcap)+' 亿';
       $('c-value').textContent=f2(r.value)+' 亿';
       $('c-rprice').textContent=r.rprice.toFixed(1)+' 元';
-      $('c-x').textContent=p1(r.X);
+      $('c-x').textContent=sp(r.X);
       $('c-grade').textContent=gname;
       $('c-upside').textContent=sp(r.upside);
       $('c-pes').textContent=pes.rprice.toFixed(1)+' 元';
@@ -1188,7 +1312,7 @@
       $('t-opt-x').textContent=sp(opt.upside);
       $('t-opt-t').textContent=tierStr(ot);
       // 柱状图几何（与生成器 bar() 逐位一致：h=price/Vmax*180，y=200-h）
-      const Vmax=Math.max(pes.rprice,r.rprice,opt.rprice,p.price)*1.15;
+      const Vmax=Math.max(1e-9,Math.max(pes.rprice,r.rprice,opt.rprice,p.price)*1.15);
       const CUR=(($('b-vmax').textContent.match(/≈\s*[\d.]+\s*(\S+)/)||[])[1])||'¥';
       const curY=barGeom(p.price,Vmax)[0];
       const bCur=$('b-cur-line');bCur.setAttribute('y1',curY);bCur.setAttribute('y2',curY);
@@ -1215,9 +1339,11 @@
       setTimeout(function(){ btn.textContent='↺ 应用并刷新报告正文'; },1200);
     });
     // 重置：恢复页面加载时的原始参数（通用，不硬编码具体标的）
-    const ORIG=readParams();
     $('btn-reset').addEventListener('click',function(){
-      for(const k in ORIG){ const el=$('i-'+k); if(el) el.value=ORIG[k]; }
+      // v3.14：ORIG 已被 FALLBACK 修补过，重置应回写页面加载时的原值。
+      for(const k in ORIG_RAW){ const el=$('i-'+k); if(!el) continue;
+        const v=ORIG_RAW[k]; el.value=(typeof v==='string'||Number.isFinite(v))?v:ORIG[k]; }
+      showCalcWarn([]);
       applyToReport();
     });
     compute();

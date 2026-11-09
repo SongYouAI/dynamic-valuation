@@ -12,10 +12,13 @@
 #   DV_USE_PROXY 设 1 则沿用当前 http(s)_proxy；默认忽略（本机代理常挂，直连 GitHub 更稳）
 #
 # 规则：
-#   - 本地目录是唯一源头；scripts/ templates/ tests/ 用 rsync --delete 镜像，
+#   - 本地目录是唯一源头；scripts/ templates/ tests/ assets/ 用 rsync --delete 镜像，
 #     本地删掉的文件也会从仓库删掉（模板 .bak* 备份、缓存文件不会被同步）。
 #   - references/ 仅在仓库 .gitignore 未排除时才同步（默认被排除，不公开）。
 #   - 测试不通过 → 中止，不提交、不推送。
+#   - v3.14：clone / fetch / push 一律 HTTPS + gh auth token（本机 GitHub SSH 已失效）；
+#     发布包额外校验 assets 三件套内容长度与打印态 Hero 覆盖规则。
+#   - 本脚本只负责 GitHub 仓库；Gitee 镜像与 SkillHub 发布是独立步骤，见 SKILL.md。
 set -euo pipefail
 
 # 网络：本机 github.com 常被墙、系统代理常失效，这里自动挑一个能通的本地代理
@@ -74,11 +77,19 @@ fi
 command -v gh >/dev/null 2>&1 || { echo "❌ 需要 gh CLI（brew install gh && gh auth login）" >&2; exit 1; }
 command -v rsync >/dev/null 2>&1 || { echo "❌ 需要 rsync" >&2; exit 1; }
 
+# v3.14：gh repo clone 默认走 SSH，本机 GitHub SSH 公钥已失效
+# （Permission denied publickey），改为 HTTPS + gh auth token。
+# 令牌只写进本仓库的 remote URL，不打印、不写日志。
+TOKEN="$(gh auth token 2>/dev/null || true)"
+[ -n "$TOKEN" ] || { echo "❌ 取不到 gh auth token，请先 gh auth login" >&2; exit 1; }
+AUTH_URL="https://x-access-token:${TOKEN}@github.com/${REPO}.git"
+
 echo "① 准备仓库工作区：$WORK"
 if [ ! -d "$WORK/.git" ]; then
   mkdir -p "$(dirname "$WORK")"
-  gh repo clone "$REPO" "$WORK" -- --quiet
+  git clone --quiet "$AUTH_URL" "$WORK"
 else
+  git -C "$WORK" remote set-url origin "$AUTH_URL"
   git -C "$WORK" fetch origin "$BRANCH" --quiet
   git -C "$WORK" checkout "$BRANCH" --quiet
   git -C "$WORK" reset --hard "origin/$BRANCH" --quiet
@@ -86,12 +97,24 @@ fi
 
 echo "② 覆盖本地文件 → 工作区"
 EXC=(--exclude '.DS_Store' --exclude '__pycache__' --exclude '*.pyc' --exclude '*.bak*' --exclude '.pytest_cache')
-for f in SKILL.md README.md LICENSE sync.sh; do
+for f in SKILL.md README.md LICENSE sync.sh .gitignore; do
   [ -f "$SRC/$f" ] && rsync -a "${EXC[@]}" "$SRC/$f" "$WORK/"
 done
-for d in scripts templates tests; do
+# v3.9 起 apply_skin() 依赖 assets/ 的两层 CSS + brand.json；漏同步会让远端 clone 直接 FileNotFoundError。
+for d in scripts templates tests assets; do
   [ -d "$SRC/$d" ] && rsync -a --delete "${EXC[@]}" "$SRC/$d/" "$WORK/$d/"
 done
+for f in hydro-skin.css dynamic-adapt.css brand.json; do
+  [ -f "$WORK/assets/$f" ] || { echo "❌ 发布包缺 assets/$f，生成器会崩溃，已中止" >&2; exit 1; }
+done
+# v3.14：只查文件存在不够，空 CSS 会让换肤静默失效且 P0-A 假通过。
+for f in hydro-skin.css dynamic-adapt.css; do
+  [ "$(wc -c < "$WORK/assets/$f" | tr -d ' ')" -ge 200 ] || {
+    echo "❌ 发布包 assets/$f 内容异常过短，已中止" >&2; exit 1; }
+done
+# v3.14：打印可读性覆盖必须随发布包一起走，否则远端出稿会退回白底浅字。
+grep -q 'html body header#sec-overview h1' "$WORK/assets/dynamic-adapt.css" || {
+  echo "❌ 发布包缺打印态 Hero 文字覆盖，已中止" >&2; exit 1; }
 if [ -d "$SRC/references" ] && ! grep -qE '^/?references/?' "$WORK/.gitignore" 2>/dev/null; then
   rsync -a --delete "${EXC[@]}" "$SRC/references/" "$WORK/references/"
 else
