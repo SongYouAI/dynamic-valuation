@@ -711,10 +711,14 @@ check("SKILL.md / README 均写明 references 文档边界",
       '文档边界（v3.13）' in _skill and '不读 `references/` 也能完整运行' in _readme)
 # v3.14：SkillHub 要求合法 SemVer（三段式），frontmatter 用 3.14.0；
 # 正文/文档的人类可读标签仍是 v3.14，两者由本断言锁定，避免以后改漏。
-check("版本串四处一致（frontmatter 3.14.0 / 标签 v3.14）",
-      'version: 3.14.0' in _skill and 'v3.14' in _readme
-      and 'v3.14' in open(os.path.join(ROOT, 'scripts', 'generate_report.py'), encoding='utf-8').read()
-      and 'v3.14' in open(os.path.join(ROOT, 'tests', 'test_cases.py'), encoding='utf-8').read())
+_vm = re.search(r'^version:\s*(\d+)\.(\d+)\.(\d+)\s*$', _skill, re.M)
+check("frontmatter 为合法三段式 SemVer", _vm is not None)
+_tag = 'v%s.%s' % (_vm.group(1), _vm.group(2)) if _vm else ''
+check("版本串四处一致（frontmatter %s / 标签 %s）" % (
+          _vm.group(0).split(':')[1].strip() if _vm else '?', _tag),
+      bool(_vm) and _tag in _readme
+      and _tag in open(os.path.join(ROOT, 'scripts', 'generate_report.py'), encoding='utf-8').read()
+      and _tag in open(os.path.join(ROOT, 'tests', 'test_cases.py'), encoding='utf-8').read())
 
 # ⑧ 取数口径 KV 首列：模板 / 适配层双写一致，禁止 nowrap 把长标签压进值列
 _adapt = open(os.path.join(ROOT, 'assets', 'dynamic-adapt.css'), encoding='utf-8').read()

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # 把本地 skill 同步到 GitHub：SongYouAI/dynamic-valuation
 #
+# 平台：仅维护者在 macOS / Linux 使用（依赖 bash、gh、rsync、curl）。
+#       Windows 同学不要运行本脚本，克隆仓库后直接使用 skill 即可。
+#
 # 用法：
 #   ./sync.sh                          # 用默认提交说明（带时间戳）
 #   ./sync.sh -m "fix: 修正 XX"         # 自定义提交说明

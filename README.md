@@ -372,13 +372,18 @@ dynamic-valuation/
 ### WorkBuddy（主要平台）
 
 ```bash
-# 1. 放入 WorkBuddy skills 目录
+# 1. 放入 WorkBuddy skills 目录（macOS / Linux）
 cp -r dynamic-valuation ~/.workbuddy/skills/
+
+# Windows PowerShell 用这一行：
+# Copy-Item -Recurse dynamic-valuation "$env:USERPROFILE\.workbuddy\skills\"
 
 # 2. 对话中触发
 # "用动态估值法 给 宁德时代 估个值"
 # "贵州茅台 现在贵不贵？"
 ```
+
+> **Windows 同学**：命令示例里的 `python3` 换成 `python` 或 `py`；所有命令在 skill 根目录执行。`sync.sh` 是维护者专用的发布脚本，依赖 macOS / Linux 的 bash、gh、rsync，Windows 同学不要运行它，克隆仓库后直接使用 skill 即可。
 
 ### 其他 Agent（Claude Code / Cline 等）
 
@@ -430,6 +435,7 @@ python3 scripts/generate_report.py 宁德时代_params.json
 | **v3.12** | 2026-11-09 | **整体审查修复**：未知占位符真门禁（不再静默渲染破折号）、入参体检补全、测算器重置漏折扣率 / 浮点误触顶 / X 丢正号三处前后端不一致、`sync.sh` 漏同步 `assets/`；新增 T21，172 项回归 |
 | **v3.13** | 2026-11-09 | **7 项待定优化全部落地**：富文本白名单净化（保留 `[S##]` 上标）、正文引用↔`sources` 自动比对门禁、分红率铁律加强（`payout_basis` / P0-P）、`apply_skin` 改 `rfind` + P0-A 位置检查、测算器空输入回退 + 分母钳制、`calibrate_discount.py` 入参体检与 `--md`、references 文档边界说明；新增 T22 46 项，220 项回归全绿 |
 | **v3.14** | 2026-11-09 | **长江电力实战复盘 + 全面审计**：取数口径 KV 首列 `132px+nowrap` 压字改 `176px+可换行`（模板与适配层双写）；测算器搬回首屏（y 2212→471）；入参拦 NaN/Inf 与确定性三项类型；交叉验证七项缺项 / 纯标签 verdict 阻断；参数携带 `{{KEY}}` 与市场块注释错配阻断；`payout_basis` 占位符、出处补号与 tier 白名单；P0-E/P0-H/P0-F 门禁加固；brand 页脚转义与渲染类型混淆；前端 `ORIG_RAW`、渐入兜底、1200px 断点、深色打印亮色反相。**收尾深挖**：全 DOM 对比度扫描发现打印态 Hero 白底浅字仅 1.10:1（模板 `!important` 硬编码 + `hydro-skin.css` 打印段选择器全指向不存在的 `.hero` DOM），已在第 3 层集中压回墨色、按真实 DOM 重写打印段、补齐深色主题 9 处硬编码深底/浅字；`--p-ink-3` 由 2.78:1 压到 4.70~5.35:1；`_asset()` 空样式硬失败 + P0-A 加空 `<style>` 与打印覆盖门禁。发布链：`sync.sh` 改 HTTPS + `gh auth token`（SSH 已失效）、补 assets 内容与打印覆盖校验；测试去掉对本地 `temp/` 的硬依赖，发布包 clone 后可直接跑；frontmatter 规范为 SemVer `3.14.0`（正文标签仍 v3.14）。T23/T24/T25 共 **291 项回归全绿**，28 项独立负向验证，六档视口探针全绿，打印/屏幕四态对比度 0 处低于 3.0:1（对照组可复现 15 处） |
+| **v3.14.1** | 2026-11-10 | **Windows 兼容**：README 补 Windows 安装与 `python` / PowerShell 说明，`sync.sh` 明确标注仅维护者 macOS / Linux 可用；新增 `.gitattributes` 锁 LF；frontmatter 升 3.14.1（人类可读标签仍 v3.14） |
 
 ---
 
